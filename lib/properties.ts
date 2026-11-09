@@ -1,4 +1,3 @@
-import { cacheLife, cacheTag } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
   ListingType,
@@ -98,10 +97,6 @@ function applyFilters<
 export async function getFeaturedProperties(
   filters: PropertyFilters
 ): Promise<Property[]> {
-  "use cache";
-  cacheLife("minutes");
-  cacheTag("properties");
-
   const supabase = createSupabaseServerClient();
   const query = applyFilters(
     supabase.from("properties").select("*").eq("featured", true),
@@ -127,10 +122,6 @@ export async function getMarketProperties(
   filters: PropertyFilters,
   page: number
 ): Promise<MarketPage> {
-  "use cache";
-  cacheLife("minutes");
-  cacheTag("properties");
-
   const from = (page - 1) * PAGE_SIZE;
   const supabase = createSupabaseServerClient();
   const query = applyFilters(
