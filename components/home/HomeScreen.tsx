@@ -1,80 +1,47 @@
-"use client";
-
-import { useState, useMemo } from "react";
-import {
-  getFeaturedProperties,
-  getMarketProperties,
-  type PropertyCategory,
-} from "@/data/properties";
-import { Navbar } from "@/components/layout/Navbar";
+import { redirect } from "next/navigation";
 import { HeroSearch } from "./HeroSearch";
 import { FeaturedCollections } from "./FeaturedCollections";
-import { NewInMarket, type MarketFilter } from "./NewInMarket";
+import { NewInMarket } from "./NewInMarket";
+import { buildHomeHref, parseHomeQuery } from "@/lib/home-query";
+import { getFeaturedProperties, getMarketProperties } from "@/lib/properties";
 
-export function HomeScreen() {
-  const [selectedCategory, setSelectedCategory] =
-    useState<PropertyCategory>("All");
-  const [selectedMarketFilter, setSelectedMarketFilter] =
-    useState<MarketFilter>("all");
-  const [searchQuery, setSearchQuery] = useState("");
+interface HomeScreenProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
 
-  const featuredProperties = useMemo(() => {
-    const base = getFeaturedProperties();
-    return base.filter((property) => {
-      const matchesCategory =
-        selectedCategory === "All" || property.category === selectedCategory;
-      const matchesSearch =
-        !searchQuery.trim() ||
-        property.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        property.location.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesCategory && matchesSearch;
-    });
-  }, [selectedCategory, searchQuery]);
+export async function HomeScreen({ searchParams }: HomeScreenProps) {
+  const query = parseHomeQuery(await searchParams);
 
-  const marketProperties = useMemo(() => {
-    const base = getMarketProperties();
-    const isFiltering =
-      selectedCategory !== "All" ||
-      selectedMarketFilter !== "all" ||
-      Boolean(searchQuery.trim());
+  const [featured, market] = await Promise.all([
+    getFeaturedProperties(query),
+    getMarketProperties(query, query.page),
+  ]);
 
-    return base
-      .filter((property) => {
-        const matchesCategory =
-          selectedCategory === "All" || property.category === selectedCategory;
-        const matchesMarket =
-          selectedMarketFilter === "all" ||
-          (selectedMarketFilter === "buy" && property.listingType === "sale") ||
-          (selectedMarketFilter === "rent" && property.listingType === "rent");
-        const matchesSearch =
-          !searchQuery.trim() ||
-          property.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          property.location.toLowerCase().includes(searchQuery.toLowerCase());
-        return matchesCategory && matchesMarket && matchesSearch;
-      })
-      .map((property) =>
-        isFiltering ? { ...property, visibilityClass: undefined } : property
-      );
-  }, [selectedCategory, selectedMarketFilter, searchQuery]);
+  if (query.page > market.totalPages) {
+    redirect(buildHomeHref({ ...query, page: market.totalPages }));
+  }
 
   return (
     <>
-      <Navbar />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
-        <HeroSearch
-          selectedCategory={selectedCategory}
-          onSelectCategory={setSelectedCategory}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-        />
-        <FeaturedCollections properties={featuredProperties} />
-        <NewInMarket
-          properties={marketProperties}
-          selectedFilter={selectedMarketFilter}
-          onSelectFilter={setSelectedMarketFilter}
-        />
-      </main>
+      <HeroSearch query={query} />
+      <FeaturedCollections properties={featured} />
+      <NewInMarket
+        properties={market.items}
+        query={query}
+        totalPages={market.totalPages}
+      />
     </>
   );
 }
 
+export function HomeSkeleton() {
+  return (
+    <div className="animate-pulse pt-24">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {Array.from({ length: 8 }, (_, i) => (
+          <div key={i} className="bg-white rounded-xl h-80" />
+        ))}
+      </div>
+    </div>
+  );
+}

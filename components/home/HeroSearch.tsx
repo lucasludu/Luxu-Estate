@@ -1,22 +1,12 @@
-import {
-  PROPERTY_CATEGORIES,
-  type PropertyCategory,
-} from "@/data/properties";
+import { PROPERTY_CATEGORIES } from "@/data/properties";
+import { buildHomeHref, type HomeQuery } from "@/lib/home-query";
 import { CategoryPill } from "./CategoryPill";
 
 interface HeroSearchProps {
-  selectedCategory: PropertyCategory;
-  onSelectCategory: (category: PropertyCategory) => void;
-  searchQuery: string;
-  onSearchChange: (value: string) => void;
+  query: HomeQuery;
 }
 
-export function HeroSearch({
-  selectedCategory,
-  onSelectCategory,
-  searchQuery,
-  onSearchChange,
-}: HeroSearchProps) {
+export function HeroSearch({ query }: HeroSearchProps) {
   return (
     <section className="py-12 md:py-16">
       <div className="max-w-3xl mx-auto text-center space-y-8">
@@ -29,7 +19,17 @@ export function HeroSearch({
           .
         </h1>
 
-        <div className="relative group max-w-2xl mx-auto">
+        <form
+          action="/"
+          method="get"
+          className="relative group max-w-2xl mx-auto"
+        >
+          {query.category !== "All" && (
+            <input type="hidden" name="category" value={query.category} />
+          )}
+          {query.market !== "all" && (
+            <input type="hidden" name="type" value={query.market} />
+          )}
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
             <span className="material-icons text-nordic-muted text-2xl group-focus-within:text-mosque transition-colors">
               search
@@ -37,26 +37,26 @@ export function HeroSearch({
           </div>
           <input
             type="text"
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
+            name="q"
+            defaultValue={query.q}
             placeholder="Search by city, neighborhood, or address..."
             className="block w-full pl-12 pr-4 py-4 rounded-xl border-none outline-none bg-white text-nordic-dark shadow-soft placeholder-nordic-muted/60 focus:ring-2 focus:ring-mosque focus:bg-white transition-all text-lg"
           />
           <button
-            type="button"
+            type="submit"
             className="absolute inset-y-2 right-2 px-6 bg-mosque hover:bg-mosque/90 text-white font-medium rounded-lg transition-colors flex items-center justify-center shadow-lg shadow-mosque/20 cursor-pointer"
           >
             Search
           </button>
-        </div>
+        </form>
 
         <div className="flex items-center justify-center gap-3 overflow-x-auto hide-scroll py-2 px-4 -mx-4">
           {PROPERTY_CATEGORIES.map((category) => (
             <CategoryPill
               key={category}
               category={category}
-              active={selectedCategory === category}
-              onClick={onSelectCategory}
+              active={query.category === category}
+              href={buildHomeHref({ ...query, category, page: 1 })}
             />
           ))}
           <div className="w-px h-6 bg-nordic-dark/10 mx-2"></div>
@@ -71,4 +71,3 @@ export function HeroSearch({
     </section>
   );
 }
-

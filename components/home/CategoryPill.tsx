@@ -1,20 +1,21 @@
+import Link from "next/link";
 import type { PropertyCategory } from "@/data/properties";
 
 interface CategoryPillProps {
   category: PropertyCategory;
+  href: string;
   active?: boolean;
-  onClick?: (category: PropertyCategory) => void;
 }
 
 export function CategoryPill({
   category,
+  href,
   active = false,
-  onClick,
 }: CategoryPillProps) {
   return (
-    <button
-      type="button"
-      onClick={() => onClick?.(category)}
+    <Link
+      href={href}
+      aria-current={active ? "true" : undefined}
       className={
         active
           ? "whitespace-nowrap px-5 py-2 rounded-full bg-nordic-dark text-white text-sm font-medium shadow-lg shadow-nordic-dark/10 transition-transform hover:-translate-y-0.5 cursor-pointer"
@@ -22,7 +23,6 @@ export function CategoryPill({
       }
     >
       {category}
-    </button>
+    </Link>
   );
 }
-

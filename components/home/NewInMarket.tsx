@@ -1,12 +1,14 @@
+import Link from "next/link";
 import type { Property } from "@/data/properties";
+import { buildHomeHref, type HomeQuery } from "@/lib/home-query";
+import type { MarketFilter } from "@/lib/properties";
 import { PropertyCard } from "./PropertyCard";
-
-export type MarketFilter = "all" | "buy" | "rent";
+import { Pagination } from "./Pagination";
 
 interface NewInMarketProps {
   properties: Property[];
-  selectedFilter: MarketFilter;
-  onSelectFilter: (filter: MarketFilter) => void;
+  query: HomeQuery;
+  totalPages: number;
 }
 
 const MARKET_FILTERS: { label: string; value: MarketFilter }[] = [
@@ -17,8 +19,8 @@ const MARKET_FILTERS: { label: string; value: MarketFilter }[] = [
 
 export function NewInMarket({
   properties,
-  selectedFilter,
-  onSelectFilter,
+  query,
+  totalPages,
 }: NewInMarketProps) {
   return (
     <section>
@@ -34,12 +36,12 @@ export function NewInMarket({
 
         <div className="hidden md:flex bg-white p-1 rounded-lg">
           {MARKET_FILTERS.map((filter) => {
-            const isActive = selectedFilter === filter.value;
+            const isActive = query.market === filter.value;
             return (
-              <button
+              <Link
                 key={filter.value}
-                type="button"
-                onClick={() => onSelectFilter(filter.value)}
+                href={buildHomeHref({ ...query, market: filter.value, page: 1 })}
+                aria-current={isActive ? "true" : undefined}
                 className={
                   isActive
                     ? "px-4 py-1.5 rounded-md text-sm font-medium bg-nordic-dark text-white shadow-sm cursor-pointer"
@@ -47,27 +49,25 @@ export function NewInMarket({
                 }
               >
                 {filter.label}
-              </button>
+              </Link>
             );
           })}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {properties.map((property) => (
-          <PropertyCard key={property.id} property={property} />
-        ))}
-      </div>
+      {properties.length === 0 ? (
+        <p className="text-center text-nordic-muted py-16">
+          No properties match your search.
+        </p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {properties.map((property) => (
+            <PropertyCard key={property.id} property={property} />
+          ))}
+        </div>
+      )}
 
-      <div className="mt-12 text-center">
-        <button
-          type="button"
-          className="px-8 py-3 bg-white border border-nordic-dark/10 hover:border-mosque hover:text-mosque text-nordic-dark font-medium rounded-lg transition-all hover:shadow-md cursor-pointer"
-        >
-          Load more properties
-        </button>
-      </div>
+      <Pagination query={query} totalPages={totalPages} />
     </section>
   );
 }
-
