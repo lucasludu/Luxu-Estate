@@ -1,3 +1,5 @@
+import Image from "next/image";
+import Link from "next/link";
 import type { Property } from "@/data/properties";
 
 interface PropertyCardProps {
@@ -9,28 +11,38 @@ export function PropertyCard({ property }: PropertyCardProps) {
   const displayClasses = property.visibilityClass
     ? `${property.visibilityClass} flex-col`
     : "flex flex-col";
+  const href = `/properties/${property.slug}`;
 
   return (
     <article
-      className={`bg-white rounded-xl overflow-hidden shadow-card hover:shadow-soft transition-all duration-300 group cursor-pointer h-full ${displayClasses}`}
+      className={`relative bg-white rounded-xl overflow-hidden shadow-card hover:shadow-soft transition-all duration-300 group cursor-pointer h-full ${displayClasses}`}
     >
       <div className="relative aspect-[4/3] overflow-hidden">
-        <img
-          alt={property.imageAlt}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-          data-alt={property.imageAlt}
-          src={property.image}
-        />
+        <Link
+          href={href}
+          prefetch={true}
+          aria-label={`View details for ${property.title}`}
+          className="block w-full h-full relative"
+        >
+          <Image
+            alt={property.imageAlt}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            data-alt={property.imageAlt}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            src={property.image}
+          />
+        </Link>
         <button
           type="button"
           aria-label={`Save ${property.title}`}
-          className="absolute top-3 right-3 p-2 bg-white/90 rounded-full hover:bg-mosque hover:text-white transition-colors text-nordic-dark flex items-center justify-center cursor-pointer"
+          className="absolute top-3 right-3 z-10 p-2 bg-white/90 rounded-full hover:bg-mosque hover:text-white transition-colors text-nordic-dark flex items-center justify-center cursor-pointer"
         >
           <span className="material-icons text-lg">favorite_border</span>
         </button>
         {property.statusLabel && (
           <div
-            className={`absolute bottom-3 left-3 ${
+            className={`pointer-events-none absolute bottom-3 left-3 ${
               isRent ? "bg-mosque/90" : "bg-nordic-dark/90"
             } text-white text-xs font-bold px-2 py-1 rounded`}
           >
@@ -39,7 +51,11 @@ export function PropertyCard({ property }: PropertyCardProps) {
         )}
       </div>
 
-      <div className="p-4 flex flex-col flex-grow">
+      <Link
+        href={href}
+        prefetch={true}
+        className="p-4 flex flex-col flex-grow"
+      >
         <div className="flex justify-between items-baseline mb-2">
           <h3 className="font-bold text-lg text-nordic-dark">
             {property.priceFormatted}
@@ -48,7 +64,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
             )}
           </h3>
         </div>
-        <h4 className="text-nordic-dark font-medium truncate mb-1">
+        <h4 className="text-nordic-dark font-medium truncate mb-1 group-hover:text-mosque transition-colors">
           {property.title}
         </h4>
         <p className="text-nordic-muted text-xs mb-4">{property.location}</p>
@@ -73,7 +89,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
             {property.area}
           </div>
         </div>
-      </div>
+      </Link>
     </article>
   );
 }

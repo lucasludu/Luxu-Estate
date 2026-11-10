@@ -1,4 +1,4 @@
-﻿export type PropertyCategory =
+export type PropertyCategory =
   | "All"
   | "House"
   | "Apartment"
@@ -6,6 +6,17 @@
   | "Penthouse";
 
 export type ListingType = "sale" | "rent";
+
+export interface PropertyImage {
+  url: string;
+  alt: string;
+}
+
+export interface PropertyAgent {
+  name: string;
+  role: string;
+  avatar: string;
+}
 
 export interface Property {
   id: string;
@@ -18,8 +29,11 @@ export interface Property {
   beds: number;
   baths: number;
   area: string;
+  areaValue: number;
+  garage: number;
   image: string;
   imageAlt: string;
+  images: PropertyImage[];
   category: Exclude<PropertyCategory, "All">;
   listingType: ListingType;
   statusLabel?: "FOR SALE" | "FOR RENT";
@@ -27,6 +41,14 @@ export interface Property {
   featured?: boolean;
   hasBottomGradient?: boolean;
   visibilityClass?: string;
+  description: string[];
+  amenities: string[];
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
+  agent: PropertyAgent;
+  estimatedMonthlyPayment: string;
 }
 
 export const PROPERTY_CATEGORIES: PropertyCategory[] = [

@@ -1,3 +1,5 @@
+import Image from "next/image";
+import Link from "next/link";
 import type { Property } from "@/data/properties";
 
 interface FeaturedPropertyCardProps {
@@ -5,33 +7,44 @@ interface FeaturedPropertyCardProps {
 }
 
 export function FeaturedPropertyCard({ property }: FeaturedPropertyCardProps) {
+  const href = `/properties/${property.slug}`;
+
   return (
     <div className="group relative rounded-xl overflow-hidden shadow-soft bg-white cursor-pointer">
       <div className="aspect-[4/3] w-full overflow-hidden relative">
-        <img
-          alt={property.imageAlt}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-          data-alt={property.imageAlt}
-          src={property.image}
-        />
+        <Link
+          href={href}
+          prefetch={true}
+          aria-label={`View details for ${property.title}`}
+          className="block w-full h-full relative"
+        >
+          <Image
+            alt={property.imageAlt}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            data-alt={property.imageAlt}
+            fill
+            sizes="(max-width: 1024px) 100vw, 50vw"
+            src={property.image}
+          />
+          {property.hasBottomGradient && (
+            <div className="absolute bottom-0 inset-x-0 h-1/2 bg-gradient-to-t from-black/60 to-transparent opacity-60"></div>
+          )}
+        </Link>
         {property.badge && (
-          <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider text-nordic-dark">
+          <div className="pointer-events-none absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider text-nordic-dark">
             {property.badge}
           </div>
         )}
         <button
           type="button"
           aria-label={`Save ${property.title}`}
-          className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-nordic-dark hover:bg-mosque hover:text-white transition-all cursor-pointer"
+          className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-nordic-dark hover:bg-mosque hover:text-white transition-all cursor-pointer"
         >
           <span className="material-icons text-xl">favorite_border</span>
         </button>
-        {property.hasBottomGradient && (
-          <div className="absolute bottom-0 inset-x-0 h-1/2 bg-gradient-to-t from-black/60 to-transparent opacity-60"></div>
-        )}
       </div>
 
-      <div className="p-6 relative">
+      <Link href={href} prefetch={true} className="block p-6 relative">
         <div className="flex justify-between items-start mb-2">
           <div>
             <h3 className="text-xl font-medium text-nordic-dark group-hover:text-mosque transition-colors">
@@ -44,6 +57,9 @@ export function FeaturedPropertyCard({ property }: FeaturedPropertyCardProps) {
           </div>
           <span className="text-xl font-semibold text-mosque">
             {property.priceFormatted}
+            {property.isMonthly && (
+              <span className="text-sm font-normal text-nordic-muted">/mo</span>
+            )}
           </span>
         </div>
 
@@ -61,7 +77,7 @@ export function FeaturedPropertyCard({ property }: FeaturedPropertyCardProps) {
             {property.area}
           </div>
         </div>
-      </div>
+      </Link>
     </div>
   );
 }
