@@ -29,9 +29,7 @@ interface PropertyRow {
   baths: number | string;
   area_m2: number;
   garage?: number | null;
-  image_url: string;
-  image_alt: string;
-  images?: PropertyImage[] | null;
+  images: PropertyImage[];
   category: Exclude<PropertyCategory, "All">;
   listing_type: ListingType;
   badge: string | null;
@@ -90,18 +88,23 @@ function calculateMonthlyPayment(
 }
 
 function normalizeImages(row: PropertyRow): PropertyImage[] {
-  const primary: PropertyImage = {
-    url: row.image_url,
-    alt: row.image_alt || row.title,
+  const fallback: PropertyImage = {
+    url: "/placeholder.jpg",
+    alt: row.title,
   };
   if (!Array.isArray(row.images) || row.images.length === 0) {
-    return [primary];
+    return [fallback];
   }
-  const valid = row.images.filter(
-    (img): img is PropertyImage =>
-      Boolean(img && typeof img.url === "string" && img.url.trim().length > 0)
-  );
-  return valid.length > 0 ? valid : [primary];
+  const valid = row.images
+    .filter(
+      (img): img is PropertyImage =>
+        Boolean(img && typeof img.url === "string" && img.url.trim().length > 0)
+    )
+    .map((img) => ({
+      url: img.url,
+      alt: img.alt || row.title,
+    }));
+  return valid.length > 0 ? valid : [fallback];
 }
 
 function toProperty(row: PropertyRow): Property {
@@ -122,8 +125,6 @@ function toProperty(row: PropertyRow): Property {
     area: `${areaFormatter.format(row.area_m2)} m²`,
     areaValue: row.area_m2,
     garage: row.garage ?? 2,
-    image: images[0].url,
-    imageAlt: images[0].alt,
     images,
     category: row.category,
     listingType: row.listing_type,

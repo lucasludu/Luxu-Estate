@@ -8,6 +8,7 @@ interface FeaturedPropertyCardProps {
 
 export function FeaturedPropertyCard({ property }: FeaturedPropertyCardProps) {
   const href = `/properties/${property.slug}`;
+  const coverImage = property.images[0];
 
   return (
     <div className="group relative rounded-xl overflow-hidden shadow-soft bg-white cursor-pointer">
@@ -19,12 +20,12 @@ export function FeaturedPropertyCard({ property }: FeaturedPropertyCardProps) {
           className="block w-full h-full relative"
         >
           <Image
-            alt={property.imageAlt}
+            alt={coverImage.alt}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-            data-alt={property.imageAlt}
+            data-alt={coverImage.alt}
             fill
             sizes="(max-width: 1024px) 100vw, 50vw"
-            src={property.image}
+            src={coverImage.url}
           />
           {property.hasBottomGradient && (
             <div className="absolute bottom-0 inset-x-0 h-1/2 bg-gradient-to-t from-black/60 to-transparent opacity-60"></div>

@@ -12,6 +12,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
     ? `${property.visibilityClass} flex-col`
     : "flex flex-col";
   const href = `/properties/${property.slug}`;
+  const coverImage = property.images[0];
 
   return (
     <article
@@ -25,12 +26,12 @@ export function PropertyCard({ property }: PropertyCardProps) {
           className="block w-full h-full relative"
         >
           <Image
-            alt={property.imageAlt}
+            alt={coverImage.alt}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-            data-alt={property.imageAlt}
+            data-alt={coverImage.alt}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-            src={property.image}
+            src={coverImage.url}
           />
         </Link>
         <button
