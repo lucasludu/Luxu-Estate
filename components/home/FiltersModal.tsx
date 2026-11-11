@@ -154,7 +154,7 @@ export function FiltersModal({ query, properties }: FiltersModalProps) {
       if (category !== "All" && prop.category !== category) {
         return false;
       }
-      if (!prop.featured && query.market !== "all") {
+      if (query.market !== "all") {
         const expectedType = query.market === "buy" ? "sale" : "rent";
         if (prop.listingType !== expectedType) return false;
       }

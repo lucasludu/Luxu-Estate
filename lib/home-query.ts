@@ -117,3 +117,7 @@ export function countActiveModalFilters(query: HomeQuery): number {
   return count;
 }
 
+export function hasActiveSearchFilters(query: HomeQuery): boolean {
+  return countActiveModalFilters(query) > 0 || query.market !== "all";
+}
+

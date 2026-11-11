@@ -9,6 +9,7 @@ import type {
 } from "@/data/properties";
 
 export const PAGE_SIZE = 8;
+export const FEATURED_LIMIT = 2;
 
 export type MarketFilter = "all" | "buy" | "rent";
 
@@ -217,7 +218,7 @@ function applyFilters<
   return result;
 }
 
-const PROPERTIES_CACHE_TAG = "properties-v2";
+const PROPERTIES_CACHE_TAG = "properties-v4";
 
 export async function getFilterablePropertySummaries(): Promise<
   FilterablePropertySummary[]
@@ -253,23 +254,20 @@ export async function getFilterablePropertySummaries(): Promise<
   }));
 }
 
-export async function getFeaturedProperties(
-  filters: PropertyFilters
-): Promise<Property[]> {
+export async function getFeaturedProperties(): Promise<Property[]> {
   "use cache";
   cacheLife("hours");
   cacheTag("properties", PROPERTIES_CACHE_TAG);
 
   const supabase = createSupabaseServerClient();
-  const query = applyFilters(
-    supabase.from("properties").select("*").eq("featured", true),
-    filters,
-    false
-  )
+  const { data, error } = await supabase
+    .from("properties")
+    .select("*")
+    .eq("featured", true)
     .order("created_at", { ascending: false })
-    .order("id");
+    .order("id")
+    .limit(FEATURED_LIMIT);
 
-  const { data, error } = await query;
   if (error) throw new Error(`Failed to load featured properties: ${error.message}`);
   return (data as PropertyRow[]).map(toProperty);
 }
@@ -292,10 +290,7 @@ export async function getMarketProperties(
   const from = (page - 1) * PAGE_SIZE;
   const supabase = createSupabaseServerClient();
   const query = applyFilters(
-    supabase
-      .from("properties")
-      .select("*", { count: "exact" })
-      .eq("featured", false),
+    supabase.from("properties").select("*", { count: "exact" }),
     filters,
     true
   )
@@ -309,10 +304,7 @@ export async function getMarketProperties(
   // last row. Fetch only the total so the caller can redirect to a valid page.
   if (error?.code === "PGRST103") {
     const { count: total, error: countError } = await applyFilters(
-      supabase
-        .from("properties")
-        .select("*", { count: "exact" })
-        .eq("featured", false),
+      supabase.from("properties").select("*", { count: "exact" }),
       filters,
       true
     ).range(0, 0);

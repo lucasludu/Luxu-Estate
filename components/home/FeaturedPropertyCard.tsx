@@ -38,10 +38,21 @@ export function FeaturedPropertyCard({ property }: FeaturedPropertyCardProps) {
         )}
         <button
           type="button"
-          aria-label={`Save ${property.title}`}
-          className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-nordic-dark hover:bg-mosque hover:text-white transition-all cursor-pointer"
+          aria-label={
+            property.featured
+              ? `Featured property ${property.title}`
+              : `Save ${property.title}`
+          }
+          aria-pressed={Boolean(property.featured)}
+          className={
+            property.featured
+              ? "absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-mosque text-white shadow-sm flex items-center justify-center hover:bg-mosque/90 transition-all cursor-pointer"
+              : "absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-nordic-dark hover:bg-mosque hover:text-white transition-all cursor-pointer"
+          }
         >
-          <span className="material-icons text-xl">favorite_border</span>
+          <span className="material-icons text-xl">
+            {property.featured ? "favorite" : "favorite_border"}
+          </span>
         </button>
       </div>
 

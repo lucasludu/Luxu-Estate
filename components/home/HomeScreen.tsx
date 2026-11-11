@@ -2,7 +2,11 @@ import { redirect } from "next/navigation";
 import { HeroSearch } from "./HeroSearch";
 import { FeaturedCollections } from "./FeaturedCollections";
 import { NewInMarket } from "./NewInMarket";
-import { buildHomeHref, parseHomeQuery } from "@/lib/home-query";
+import {
+  buildHomeHref,
+  hasActiveSearchFilters,
+  parseHomeQuery,
+} from "@/lib/home-query";
 import {
   getFeaturedProperties,
   getFilterablePropertySummaries,
@@ -15,9 +19,10 @@ interface HomeScreenProps {
 
 export async function HomeScreen({ searchParams }: HomeScreenProps) {
   const query = parseHomeQuery(await searchParams);
+  const isFiltered = hasActiveSearchFilters(query);
 
   const [featured, market, summaries] = await Promise.all([
-    getFeaturedProperties(query),
+    isFiltered ? Promise.resolve([]) : getFeaturedProperties(),
     getMarketProperties(query, query.page),
     getFilterablePropertySummaries(),
   ]);
@@ -29,7 +34,7 @@ export async function HomeScreen({ searchParams }: HomeScreenProps) {
   return (
     <>
       <HeroSearch query={query} properties={summaries} />
-      <FeaturedCollections properties={featured} />
+      {!isFiltered && <FeaturedCollections properties={featured} />}
       <NewInMarket
         properties={market.items}
         query={query}

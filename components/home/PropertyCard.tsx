@@ -36,10 +36,21 @@ export function PropertyCard({ property }: PropertyCardProps) {
         </Link>
         <button
           type="button"
-          aria-label={`Save ${property.title}`}
-          className="absolute top-3 right-3 z-10 p-2 bg-white/90 rounded-full hover:bg-mosque hover:text-white transition-colors text-nordic-dark flex items-center justify-center cursor-pointer"
+          aria-label={
+            property.featured
+              ? `Featured property ${property.title}`
+              : `Save ${property.title}`
+          }
+          aria-pressed={Boolean(property.featured)}
+          className={
+            property.featured
+              ? "absolute top-3 right-3 z-10 p-2 bg-mosque text-white rounded-full shadow-sm hover:bg-mosque/90 transition-colors flex items-center justify-center cursor-pointer"
+              : "absolute top-3 right-3 z-10 p-2 bg-white/90 rounded-full hover:bg-mosque hover:text-white transition-colors text-nordic-dark flex items-center justify-center cursor-pointer"
+          }
         >
-          <span className="material-icons text-lg">favorite_border</span>
+          <span className="material-icons text-lg">
+            {property.featured ? "favorite" : "favorite_border"}
+          </span>
         </button>
         {property.statusLabel && (
           <div
