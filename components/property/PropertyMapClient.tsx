@@ -9,6 +9,7 @@ interface PropertyMapClientProps {
   lng: number;
   title: string;
   location: string;
+  ariaLabel?: string;
 }
 
 export default function PropertyMapClient({
@@ -16,6 +17,7 @@ export default function PropertyMapClient({
   lng,
   title,
   location,
+  ariaLabel,
 }: PropertyMapClientProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -68,9 +70,10 @@ export default function PropertyMapClient({
   return (
     <div
       ref={containerRef}
-      aria-label={`Map showing location of ${title} at ${location}`}
+      aria-label={
+        ariaLabel ?? `Map showing location of ${title} at ${location}`
+      }
       className="w-full h-full z-0"
     />
   );
 }
-

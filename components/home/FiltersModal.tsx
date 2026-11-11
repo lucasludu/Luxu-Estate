@@ -13,10 +13,17 @@ import {
   type HomeQuery,
 } from "@/lib/home-query";
 import type { FilterablePropertySummary } from "@/lib/properties";
+import {
+  formatMessage,
+  translateAmenity,
+  translateCategory,
+  type Dictionary,
+} from "@/i18n";
 
 interface FiltersModalProps {
   query: HomeQuery;
   properties: FilterablePropertySummary[];
+  dict: Dictionary;
 }
 
 const SLIDER_MIN = 0;
@@ -47,7 +54,7 @@ function parseCurrencyInput(raw: string): number {
   return Number.parseInt(digits, 10);
 }
 
-export function FiltersModal({ query, properties }: FiltersModalProps) {
+export function FiltersModal({ query, properties, dict }: FiltersModalProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -253,7 +260,7 @@ export function FiltersModal({ query, properties }: FiltersModalProps) {
         className="whitespace-nowrap flex items-center gap-1 px-4 py-2 rounded-full text-nordic-dark font-medium text-sm hover:bg-black/5 transition-colors cursor-pointer"
       >
         <span className="material-icons text-base">tune</span>
-        <span>Filters</span>
+        <span>{dict.filters.buttonLabel}</span>
         {activeFilterCount > 0 && (
           <span className="ml-1 inline-flex items-center justify-center min-w-5 h-5 px-1.5 text-xs font-semibold rounded-full bg-mosque text-white">
             {activeFilterCount}
@@ -285,12 +292,12 @@ export function FiltersModal({ query, properties }: FiltersModalProps) {
                   id="filters-modal-title"
                   className="text-2xl font-semibold tracking-tight text-gray-900"
                 >
-                  Filters
+                  {dict.filters.modalTitle}
                 </h2>
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
-                  aria-label="Close filters"
+                  aria-label={dict.filters.closeAriaLabel}
                   className="p-2 rounded-full hover:bg-gray-100 transition-colors text-gray-500 flex items-center justify-center cursor-pointer"
                 >
                   <span className="material-icons">close</span>
@@ -305,7 +312,7 @@ export function FiltersModal({ query, properties }: FiltersModalProps) {
                     htmlFor="filters-location-input"
                     className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3"
                   >
-                    Location
+                    {dict.filters.locationLabel}
                   </label>
                   <div className="relative group">
                     <span className="material-icons absolute left-4 top-3.5 text-gray-400 group-focus-within:text-mosque transition-colors">
@@ -316,7 +323,7 @@ export function FiltersModal({ query, properties }: FiltersModalProps) {
                       type="text"
                       value={location}
                       onChange={(e) => setLocation(e.target.value)}
-                      placeholder="City, neighborhood, or address"
+                      placeholder={dict.filters.locationPlaceholder}
                       className="w-full pl-12 pr-4 py-3 bg-[#f5f8f6] border-0 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-mosque focus:bg-white transition-all shadow-sm outline-none"
                     />
                   </div>
@@ -326,7 +333,7 @@ export function FiltersModal({ query, properties }: FiltersModalProps) {
                 <section>
                   <div className="flex justify-between items-end mb-4">
                     <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                      Price Range
+                      {dict.filters.priceRangeLabel}
                     </label>
                     <span className="text-sm font-medium text-mosque">
                       {formatCompactPrice(minPrice)} –{" "}
@@ -380,7 +387,7 @@ export function FiltersModal({ query, properties }: FiltersModalProps) {
                       <button
                         type="button"
                         role="slider"
-                        aria-label="Minimum price"
+                        aria-label={dict.filters.minPriceSliderAriaLabel}
                         aria-valuemin={SLIDER_MIN}
                         aria-valuemax={maxPrice}
                         aria-valuenow={minPrice}
@@ -396,7 +403,7 @@ export function FiltersModal({ query, properties }: FiltersModalProps) {
                       <button
                         type="button"
                         role="slider"
-                        aria-label="Maximum price"
+                        aria-label={dict.filters.maxPriceSliderAriaLabel}
                         aria-valuemin={minPrice}
                         aria-valuemax={SLIDER_MAX}
                         aria-valuenow={maxPrice}
@@ -416,7 +423,7 @@ export function FiltersModal({ query, properties }: FiltersModalProps) {
                         htmlFor="filters-min-price"
                         className="block text-[10px] text-gray-500 uppercase font-medium mb-1"
                       >
-                        Min Price
+                        {dict.filters.minPriceLabel}
                       </label>
                       <div className="flex items-center">
                         <span className="text-gray-400 mr-1">$</span>
@@ -448,7 +455,7 @@ export function FiltersModal({ query, properties }: FiltersModalProps) {
                         htmlFor="filters-max-price"
                         className="block text-[10px] text-gray-500 uppercase font-medium mb-1"
                       >
-                        Max Price
+                        {dict.filters.maxPriceLabel}
                       </label>
                       <div className="flex items-center">
                         <span className="text-gray-400 mr-1">$</span>
@@ -482,7 +489,7 @@ export function FiltersModal({ query, properties }: FiltersModalProps) {
                       htmlFor="filters-property-type"
                       className="block text-xs font-semibold text-gray-500 uppercase tracking-wider"
                     >
-                      Property Type
+                      {dict.filters.propertyTypeLabel}
                     </label>
                     <div className="relative">
                       <select
@@ -493,11 +500,19 @@ export function FiltersModal({ query, properties }: FiltersModalProps) {
                         }
                         className="w-full bg-[#f5f8f6] border-0 rounded-lg py-3 pl-4 pr-10 text-gray-900 appearance-none focus:ring-2 focus:ring-mosque cursor-pointer outline-none"
                       >
-                        <option value="All">Any Type</option>
-                        <option value="House">House</option>
-                        <option value="Apartment">Apartment</option>
-                        <option value="Villa">Villa</option>
-                        <option value="Penthouse">Penthouse</option>
+                        <option value="All">{dict.filters.anyType}</option>
+                        <option value="House">
+                          {translateCategory(dict, "House")}
+                        </option>
+                        <option value="Apartment">
+                          {translateCategory(dict, "Apartment")}
+                        </option>
+                        <option value="Villa">
+                          {translateCategory(dict, "Villa")}
+                        </option>
+                        <option value="Penthouse">
+                          {translateCategory(dict, "Penthouse")}
+                        </option>
                       </select>
                       <span className="material-icons absolute right-3 top-3 text-gray-400 pointer-events-none">
                         expand_more
@@ -510,27 +525,27 @@ export function FiltersModal({ query, properties }: FiltersModalProps) {
                     {/* Beds */}
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium text-gray-900">
-                        Bedrooms
+                        {dict.filters.bedroomsLabel}
                       </span>
                       <div className="flex items-center space-x-3 bg-[#f5f8f6] rounded-full p-1">
                         <button
                           type="button"
                           disabled={beds <= 0}
                           onClick={() => setBeds((prev) => Math.max(0, prev - 1))}
-                          aria-label="Decrease minimum bedrooms"
+                          aria-label={dict.filters.decreaseBedsAriaLabel}
                           className="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-500 hover:text-mosque disabled:opacity-50 transition-colors cursor-pointer"
                         >
                           <span className="material-icons text-base">
                             remove
                           </span>
                         </button>
-                        <span className="text-sm font-semibold min-w-6 text-center">
-                          {beds > 0 ? `${beds}+` : "Any"}
+                        <span className="text-sm font-semibold min-w-6 text-center px-1">
+                          {beds > 0 ? `${beds}+` : dict.filters.any}
                         </span>
                         <button
                           type="button"
                           onClick={() => setBeds((prev) => Math.min(6, prev + 1))}
-                          aria-label="Increase minimum bedrooms"
+                          aria-label={dict.filters.increaseBedsAriaLabel}
                           className="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center text-mosque hover:bg-mosque hover:text-white transition-colors cursor-pointer"
                         >
                           <span className="material-icons text-base">add</span>
@@ -541,7 +556,7 @@ export function FiltersModal({ query, properties }: FiltersModalProps) {
                     {/* Baths */}
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium text-gray-900">
-                        Bathrooms
+                        {dict.filters.bathroomsLabel}
                       </span>
                       <div className="flex items-center space-x-3 bg-[#f5f8f6] rounded-full p-1">
                         <button
@@ -550,22 +565,22 @@ export function FiltersModal({ query, properties }: FiltersModalProps) {
                           onClick={() =>
                             setBaths((prev) => Math.max(0, prev - 1))
                           }
-                          aria-label="Decrease minimum bathrooms"
+                          aria-label={dict.filters.decreaseBathsAriaLabel}
                           className="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-500 hover:text-mosque disabled:opacity-50 transition-colors cursor-pointer"
                         >
                           <span className="material-icons text-base">
                             remove
                           </span>
                         </button>
-                        <span className="text-sm font-semibold min-w-6 text-center">
-                          {baths > 0 ? `${baths}+` : "Any"}
+                        <span className="text-sm font-semibold min-w-6 text-center px-1">
+                          {baths > 0 ? `${baths}+` : dict.filters.any}
                         </span>
                         <button
                           type="button"
                           onClick={() =>
                             setBaths((prev) => Math.min(6, prev + 1))
                           }
-                          aria-label="Increase minimum bathrooms"
+                          aria-label={dict.filters.increaseBathsAriaLabel}
                           className="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center text-mosque hover:bg-mosque hover:text-white transition-colors cursor-pointer"
                         >
                           <span className="material-icons text-base">add</span>
@@ -578,7 +593,7 @@ export function FiltersModal({ query, properties }: FiltersModalProps) {
                 {/* Section 4: Amenities */}
                 <section>
                   <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
-                    Amenities &amp; Features
+                    {dict.filters.amenitiesSectionLabel}
                   </label>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {FILTER_AMENITIES.map((amenity) => {
@@ -610,7 +625,7 @@ export function FiltersModal({ query, properties }: FiltersModalProps) {
                             >
                               {amenity.icon}
                             </span>
-                            {amenity.label}
+                            {translateAmenity(dict, amenity.label)}
                           </div>
                           {isSelected && (
                             <div className="absolute top-2 right-2 w-2 h-2 bg-mosque rounded-full opacity-100 transition-opacity" />
@@ -629,15 +644,19 @@ export function FiltersModal({ query, properties }: FiltersModalProps) {
                   onClick={handleClearAll}
                   className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors underline decoration-gray-300 underline-offset-4 cursor-pointer"
                 >
-                  Clear all filters
+                  {dict.filters.clearAll}
                 </button>
                 <button
                   type="button"
                   onClick={handleApply}
                   className="bg-mosque hover:bg-mosque/90 text-white px-8 py-3 rounded-lg font-medium shadow-lg shadow-mosque/30 transition-all hover:shadow-mosque/40 flex items-center gap-2 transform active:scale-95 cursor-pointer"
                 >
-                  Show {matchingCount}{" "}
-                  {matchingCount === 1 ? "Home" : "Homes"}
+                  {formatMessage(
+                    matchingCount === 1
+                      ? dict.filters.showOneHome
+                      : dict.filters.showManyHomes,
+                    { count: matchingCount }
+                  )}
                   <span className="material-icons text-sm">arrow_forward</span>
                 </button>
               </footer>
@@ -648,4 +667,3 @@ export function FiltersModal({ query, properties }: FiltersModalProps) {
     </>
   );
 }
-

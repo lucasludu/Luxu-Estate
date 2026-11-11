@@ -1,18 +1,21 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Property } from "@/data/properties";
+import { formatMessage, translateBadge, type Dictionary } from "@/i18n";
 
 interface PropertyCardProps {
   property: Property;
+  dict: Dictionary;
 }
 
-export function PropertyCard({ property }: PropertyCardProps) {
+export function PropertyCard({ property, dict }: PropertyCardProps) {
   const isRent = property.listingType === "rent";
   const displayClasses = property.visibilityClass
     ? `${property.visibilityClass} flex-col`
     : "flex flex-col";
   const href = `/properties/${property.slug}`;
   const coverImage = property.images[0];
+  const statusText = translateBadge(dict, property.statusLabel);
 
   return (
     <article
@@ -22,7 +25,9 @@ export function PropertyCard({ property }: PropertyCardProps) {
         <Link
           href={href}
           prefetch={true}
-          aria-label={`View details for ${property.title}`}
+          aria-label={formatMessage(dict.card.viewDetailsAriaLabel, {
+            title: property.title,
+          })}
           className="block w-full h-full relative"
         >
           <Image
@@ -38,8 +43,12 @@ export function PropertyCard({ property }: PropertyCardProps) {
           type="button"
           aria-label={
             property.featured
-              ? `Featured property ${property.title}`
-              : `Save ${property.title}`
+              ? formatMessage(dict.card.featuredAriaLabel, {
+                  title: property.title,
+                })
+              : formatMessage(dict.card.saveAriaLabel, {
+                  title: property.title,
+                })
           }
           aria-pressed={Boolean(property.featured)}
           className={
@@ -52,13 +61,13 @@ export function PropertyCard({ property }: PropertyCardProps) {
             {property.featured ? "favorite" : "favorite_border"}
           </span>
         </button>
-        {property.statusLabel && (
+        {statusText && (
           <div
             className={`pointer-events-none absolute bottom-3 left-3 ${
               isRent ? "bg-mosque/90" : "bg-nordic-dark/90"
             } text-white text-xs font-bold px-2 py-1 rounded`}
           >
-            {property.statusLabel}
+            {statusText}
           </div>
         )}
       </div>
@@ -72,7 +81,9 @@ export function PropertyCard({ property }: PropertyCardProps) {
           <h3 className="font-bold text-lg text-nordic-dark">
             {property.priceFormatted}
             {property.isMonthly && (
-              <span className="text-sm font-normal text-nordic-muted">/mo</span>
+              <span className="text-sm font-normal text-nordic-muted">
+                {dict.card.perMonth}
+              </span>
             )}
           </h3>
         </div>
@@ -105,4 +116,3 @@ export function PropertyCard({ property }: PropertyCardProps) {
     </article>
   );
 }
-

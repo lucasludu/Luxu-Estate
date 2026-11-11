@@ -11,6 +11,7 @@ import { MortgageBanner } from "@/components/property/MortgageBanner";
 import { PropertyAgentCard } from "@/components/property/PropertyAgentCard";
 import { PropertyMap } from "@/components/property/PropertyMap";
 import { getAllPropertySlugs, getPropertyBySlug } from "@/lib/properties";
+import { getServerI18n } from "@/i18n/server";
 
 export async function generateStaticParams() {
   return getAllPropertySlugs();
@@ -52,7 +53,7 @@ async function PropertyDetailsContent({
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const { slug } = await params;
+  const [{ slug }, { dict }] = await Promise.all([params, getServerI18n()]);
   const property = await getPropertyBySlug(slug);
 
   if (!property) {
@@ -96,6 +97,7 @@ async function PropertyDetailsContent({
               title={property.title}
               badge={property.badge}
               statusLabel={property.statusLabel}
+              dict={dict}
             />
           </div>
 
@@ -107,12 +109,14 @@ async function PropertyDetailsContent({
                 location={property.location}
                 title={property.title}
                 agent={property.agent}
+                dict={dict}
               />
               <PropertyMap
                 lat={property.coordinates.lat}
                 lng={property.coordinates.lng}
                 title={property.title}
                 location={property.location}
+                dict={dict}
               />
             </div>
           </div>
@@ -123,17 +127,20 @@ async function PropertyDetailsContent({
               beds={property.beds}
               baths={property.baths}
               garage={property.garage}
+              dict={dict}
             />
             <PropertyAbout
               description={property.description}
               title={property.title}
               location={property.location}
+              dict={dict}
             />
-            <PropertyAmenities amenities={property.amenities} />
+            <PropertyAmenities amenities={property.amenities} dict={dict} />
             <MortgageBanner
               price={property.price}
               isMonthly={property.isMonthly}
               estimatedMonthlyPayment={property.estimatedMonthlyPayment}
+              dict={dict}
             />
           </div>
         </div>
@@ -181,4 +188,3 @@ export default function PropertyDetailsPage({
     </div>
   );
 }
-

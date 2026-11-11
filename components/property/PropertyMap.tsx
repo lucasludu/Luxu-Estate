@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { formatMessage, type Dictionary } from "@/i18n";
 
 const PropertyMapClient = dynamic(() => import("./PropertyMapClient"), {
   ssr: false,
@@ -18,9 +19,16 @@ interface PropertyMapProps {
   lng: number;
   title: string;
   location: string;
+  dict: Dictionary;
 }
 
-export function PropertyMap({ lat, lng, title, location }: PropertyMapProps) {
+export function PropertyMap({
+  lat,
+  lng,
+  title,
+  location,
+  dict,
+}: PropertyMapProps) {
   const externalMapUrl = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=16/${lat}/${lng}`;
 
   return (
@@ -31,6 +39,10 @@ export function PropertyMap({ lat, lng, title, location }: PropertyMapProps) {
           lng={lng}
           title={title}
           location={location}
+          ariaLabel={formatMessage(dict.property.map.mapAriaLabel, {
+            title,
+            location,
+          })}
         />
         <a
           className="absolute bottom-2 right-2 z-20 bg-white/90 text-xs font-medium px-2 py-1 rounded shadow-sm text-nordic hover:text-mosque transition-colors"
@@ -38,10 +50,9 @@ export function PropertyMap({ lat, lng, title, location }: PropertyMapProps) {
           target="_blank"
           rel="noopener noreferrer"
         >
-          View on Map
+          {dict.property.map.viewOnMap}
         </a>
       </div>
     </div>
   );
 }
-

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import type { PropertyAgent } from "@/data/properties";
+import { formatMessage, translateAgentRole, type Dictionary } from "@/i18n";
 
 interface PropertyAgentCardProps {
   priceFormatted: string;
@@ -10,6 +11,7 @@ interface PropertyAgentCardProps {
   location: string;
   title: string;
   agent: PropertyAgent;
+  dict: Dictionary;
 }
 
 export function PropertyAgentCard({
@@ -18,6 +20,7 @@ export function PropertyAgentCard({
   location,
   title,
   agent,
+  dict,
 }: PropertyAgentCardProps) {
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
 
@@ -27,7 +30,9 @@ export function PropertyAgentCard({
         <h1 className="text-4xl font-display font-light text-nordic mb-2">
           {priceFormatted}
           {isMonthly && (
-            <span className="text-lg font-normal text-nordic/60">/mo</span>
+            <span className="text-lg font-normal text-nordic/60">
+              {dict.card.perMonth}
+            </span>
           )}
         </h1>
         <p className="text-nordic/60 font-medium flex items-center gap-1">
@@ -54,7 +59,7 @@ export function PropertyAgentCard({
           <h3 className="font-semibold text-nordic">{agent.name}</h3>
           <div className="flex items-center gap-1 text-xs text-mosque font-medium">
             <span className="material-icons text-[14px]">star</span>
-            <span>{agent.role}</span>
+            <span>{translateAgentRole(dict, agent.role)}</span>
           </div>
         </div>
         <div className="ml-auto flex gap-2">
@@ -62,10 +67,15 @@ export function PropertyAgentCard({
             type="button"
             onClick={() =>
               setFeedbackMessage(
-                `Starting live chat with ${agent.name} about ${title}...`
+                formatMessage(dict.property.agent.chatFeedback, {
+                  name: agent.name,
+                  title,
+                })
               )
             }
-            aria-label={`Chat with ${agent.name}`}
+            aria-label={formatMessage(dict.property.agent.chatAriaLabel, {
+              name: agent.name,
+            })}
             className="p-2 rounded-full bg-mosque/10 text-mosque hover:bg-mosque hover:text-white transition-colors flex items-center justify-center cursor-pointer"
           >
             <span className="material-icons text-sm">chat</span>
@@ -74,10 +84,15 @@ export function PropertyAgentCard({
             type="button"
             onClick={() =>
               setFeedbackMessage(
-                `Requesting a call from ${agent.name} for ${title}...`
+                formatMessage(dict.property.agent.callFeedback, {
+                  name: agent.name,
+                  title,
+                })
               )
             }
-            aria-label={`Call ${agent.name}`}
+            aria-label={formatMessage(dict.property.agent.callAriaLabel, {
+              name: agent.name,
+            })}
             className="p-2 rounded-full bg-mosque/10 text-mosque hover:bg-mosque hover:text-white transition-colors flex items-center justify-center cursor-pointer"
           >
             <span className="material-icons text-sm">call</span>
@@ -90,7 +105,10 @@ export function PropertyAgentCard({
           type="button"
           onClick={() =>
             setFeedbackMessage(
-              `Visit request received for ${title}. ${agent.name} will confirm your appointment shortly.`
+              formatMessage(dict.property.agent.visitFeedback, {
+                name: agent.name,
+                title,
+              })
             )
           }
           className="w-full bg-mosque hover:bg-[#005544] text-white py-4 px-6 rounded-lg font-medium transition-all shadow-lg shadow-mosque/20 flex items-center justify-center gap-2 group cursor-pointer"
@@ -98,19 +116,21 @@ export function PropertyAgentCard({
           <span className="material-icons text-xl group-hover:scale-110 transition-transform">
             calendar_today
           </span>
-          Schedule Visit
+          {dict.property.agent.scheduleVisit}
         </button>
         <button
           type="button"
           onClick={() =>
             setFeedbackMessage(
-              `Inquiry sent to ${agent.name}. Expect a personalized dossier in your inbox.`
+              formatMessage(dict.property.agent.contactFeedback, {
+                name: agent.name,
+              })
             )
           }
           className="w-full bg-transparent border border-nordic/10 hover:border-mosque text-nordic/80 hover:text-mosque py-4 px-6 rounded-lg font-medium transition-all flex items-center justify-center gap-2 cursor-pointer"
         >
           <span className="material-icons text-xl">mail_outline</span>
-          Contact Agent
+          {dict.property.agent.contactAgent}
         </button>
       </div>
 
@@ -123,7 +143,7 @@ export function PropertyAgentCard({
           <button
             type="button"
             onClick={() => setFeedbackMessage(null)}
-            aria-label="Dismiss notification"
+            aria-label={dict.property.agent.dismissAriaLabel}
             className="text-nordic/60 hover:text-nordic cursor-pointer"
           >
             <span className="material-icons text-sm">close</span>
@@ -133,4 +153,3 @@ export function PropertyAgentCard({
     </div>
   );
 }
-

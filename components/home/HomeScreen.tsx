@@ -12,13 +12,18 @@ import {
   getFilterablePropertySummaries,
   getMarketProperties,
 } from "@/lib/properties";
+import { getServerI18n } from "@/i18n/server";
 
 interface HomeScreenProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
 export async function HomeScreen({ searchParams }: HomeScreenProps) {
-  const query = parseHomeQuery(await searchParams);
+  const [rawParams, { dict }] = await Promise.all([
+    searchParams,
+    getServerI18n(),
+  ]);
+  const query = parseHomeQuery(rawParams);
   const isFiltered = hasActiveSearchFilters(query);
 
   const [featured, market, summaries] = await Promise.all([
@@ -33,12 +38,15 @@ export async function HomeScreen({ searchParams }: HomeScreenProps) {
 
   return (
     <>
-      <HeroSearch query={query} properties={summaries} />
-      {!isFiltered && <FeaturedCollections properties={featured} />}
+      <HeroSearch query={query} properties={summaries} dict={dict} />
+      {!isFiltered && (
+        <FeaturedCollections properties={featured} dict={dict} />
+      )}
       <NewInMarket
         properties={market.items}
         query={query}
         totalPages={market.totalPages}
+        dict={dict}
       />
     </>
   );

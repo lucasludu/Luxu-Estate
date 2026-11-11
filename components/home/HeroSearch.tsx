@@ -1,25 +1,29 @@
 import { PROPERTY_CATEGORIES } from "@/data/properties";
 import { buildHomeHref, type HomeQuery } from "@/lib/home-query";
 import type { FilterablePropertySummary } from "@/lib/properties";
+import { translateCategory, type Dictionary } from "@/i18n";
 import { CategoryPill } from "./CategoryPill";
 import { FiltersModal } from "./FiltersModal";
 
 interface HeroSearchProps {
   query: HomeQuery;
   properties: FilterablePropertySummary[];
+  dict: Dictionary;
 }
 
-export function HeroSearch({ query, properties }: HeroSearchProps) {
+export function HeroSearch({ query, properties, dict }: HeroSearchProps) {
   return (
     <section className="py-12 md:py-16">
       <div className="max-w-3xl mx-auto text-center space-y-8">
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-light text-nordic-dark leading-tight">
-          Find your{" "}
+          {dict.hero.titlePrefix}{" "}
           <span className="relative inline-block">
-            <span className="relative z-10 font-medium">sanctuary</span>
+            <span className="relative z-10 font-medium">
+              {dict.hero.titleHighlight}
+            </span>
             <span className="absolute bottom-2 left-0 w-full h-3 bg-mosque/20 -rotate-1 z-0"></span>
           </span>
-          .
+          {dict.hero.titleSuffix}
         </h1>
 
         <form
@@ -62,14 +66,14 @@ export function HeroSearch({ query, properties }: HeroSearchProps) {
             type="text"
             name="q"
             defaultValue={query.q}
-            placeholder="Search by city, neighborhood, or address..."
+            placeholder={dict.hero.searchPlaceholder}
             className="block w-full pl-12 pr-28 py-4 rounded-xl border-none outline-none bg-white text-nordic-dark shadow-soft placeholder-nordic-muted/60 focus:ring-2 focus:ring-mosque focus:bg-white transition-all text-lg"
           />
           <button
             type="submit"
             className="absolute inset-y-2 right-2 px-6 bg-mosque hover:bg-mosque/90 text-white font-medium rounded-lg transition-colors flex items-center justify-center shadow-lg shadow-mosque/20 cursor-pointer"
           >
-            Search
+            {dict.hero.searchButton}
           </button>
         </form>
 
@@ -78,12 +82,13 @@ export function HeroSearch({ query, properties }: HeroSearchProps) {
             <CategoryPill
               key={category}
               category={category}
+              label={translateCategory(dict, category)}
               active={query.category === category}
               href={buildHomeHref({ ...query, category, page: 1 })}
             />
           ))}
           <div className="w-px h-6 bg-nordic-dark/10 mx-2"></div>
-          <FiltersModal query={query} properties={properties} />
+          <FiltersModal query={query} properties={properties} dict={dict} />
         </div>
       </div>
     </section>

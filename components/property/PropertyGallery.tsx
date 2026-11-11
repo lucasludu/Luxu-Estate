@@ -3,12 +3,14 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import type { PropertyImage } from "@/data/properties";
+import { formatMessage, translateBadge, type Dictionary } from "@/i18n";
 
 interface PropertyGalleryProps {
   images: PropertyImage[];
   title: string;
   badge?: string;
   statusLabel?: string;
+  dict: Dictionary;
 }
 
 export function PropertyGallery({
@@ -16,6 +18,7 @@ export function PropertyGallery({
   title,
   badge,
   statusLabel,
+  dict,
 }: PropertyGalleryProps) {
   const gallery =
     images.length > 0
@@ -27,6 +30,8 @@ export function PropertyGallery({
 
   const activeIndex = selectedIndex < gallery.length ? selectedIndex : 0;
   const activeImage = gallery[activeIndex];
+  const badgeText =
+    translateBadge(dict, badge) || dict.property.gallery.defaultBadge;
 
   useEffect(() => {
     if (!isLightboxOpen) return;
@@ -58,10 +63,12 @@ export function PropertyGallery({
         />
         <div className="absolute top-4 left-4 flex gap-2 z-10">
           <span className="bg-mosque text-white text-xs font-medium px-3 py-1.5 rounded-full uppercase tracking-wider shadow-sm">
-            {badge || "Premium"}
+            {badgeText}
           </span>
           <span className="bg-white/90 backdrop-blur text-nordic text-xs font-medium px-3 py-1.5 rounded-full uppercase tracking-wider shadow-sm">
-            {statusLabel === "FOR RENT" ? "For Rent" : "New"}
+            {statusLabel === "FOR RENT"
+              ? dict.property.gallery.forRent
+              : dict.property.gallery.new}
           </span>
         </div>
         <button
@@ -70,7 +77,7 @@ export function PropertyGallery({
           className="absolute bottom-4 right-4 z-10 bg-white/90 hover:bg-white text-nordic px-4 py-2 rounded-lg text-sm font-medium shadow-lg backdrop-blur transition-all flex items-center gap-2 cursor-pointer"
         >
           <span className="material-icons text-sm">grid_view</span>
-          View All Photos
+          {dict.property.gallery.viewAllPhotos}
           {gallery.length > 1 && (
             <span className="text-xs text-nordic/60">({gallery.length})</span>
           )}
@@ -86,7 +93,13 @@ export function PropertyGallery({
                 key={`${image.url}-${idx}`}
                 type="button"
                 onClick={() => setSelectedIndex(idx)}
-                aria-label={`View photo ${idx + 1}: ${image.alt || title}`}
+                aria-label={formatMessage(
+                  dict.property.gallery.photoAriaLabel,
+                  {
+                    index: idx + 1,
+                    title: image.alt || title,
+                  }
+                )}
                 aria-current={isSelected ? "true" : undefined}
                 className={
                   isSelected
@@ -111,20 +124,26 @@ export function PropertyGallery({
         <div
           role="dialog"
           aria-modal="true"
-          aria-label={`${title} photo gallery`}
+          aria-label={formatMessage(dict.property.gallery.dialogAriaLabel, {
+            title,
+          })}
           className="fixed inset-0 z-50 bg-nordic/90 backdrop-blur-md flex flex-col items-center justify-center p-4 sm:p-8"
         >
           <div className="w-full max-w-5xl flex items-center justify-between text-white mb-4">
             <div>
               <h3 className="font-semibold text-lg">{title}</h3>
               <p className="text-xs text-white/70">
-                Photo {activeIndex + 1} of {gallery.length} — {activeImage.alt}
+                {formatMessage(dict.property.gallery.photoCounter, {
+                  current: activeIndex + 1,
+                  total: gallery.length,
+                })}{" "}
+                — {activeImage.alt}
               </p>
             </div>
             <button
               type="button"
               onClick={() => setIsLightboxOpen(false)}
-              aria-label="Close gallery"
+              aria-label={dict.property.gallery.closeGalleryAriaLabel}
               className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer flex items-center justify-center"
             >
               <span className="material-icons">close</span>
@@ -148,7 +167,7 @@ export function PropertyGallery({
                       (prev) => (prev - 1 + gallery.length) % gallery.length
                     )
                   }
-                  aria-label="Previous photo"
+                  aria-label={dict.property.gallery.previousPhotoAriaLabel}
                   className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/90 hover:bg-white text-nordic shadow-lg transition-all cursor-pointer flex items-center justify-center"
                 >
                   <span className="material-icons">chevron_left</span>
@@ -158,7 +177,7 @@ export function PropertyGallery({
                   onClick={() =>
                     setSelectedIndex((prev) => (prev + 1) % gallery.length)
                   }
-                  aria-label="Next photo"
+                  aria-label={dict.property.gallery.nextPhotoAriaLabel}
                   className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/90 hover:bg-white text-nordic shadow-lg transition-all cursor-pointer flex items-center justify-center"
                 >
                   <span className="material-icons">chevron_right</span>
@@ -194,4 +213,3 @@ export function PropertyGallery({
     </div>
   );
 }
-

@@ -177,16 +177,20 @@ function sanitizeSearch(term: string) {
   return term.replace(/[%_\\,()*]/g, " ").replace(/\s+/g, " ").trim();
 }
 
-function applyFilters<
-  T extends {
-    eq: (column: string, value: string) => T;
-    gte: (column: string, value: number) => T;
-    lte: (column: string, value: number) => T;
-    contains: (column: string, value: readonly string[]) => T;
-    or: (filters: string) => T;
-  },
->(query: T, filters: PropertyFilters, includeMarket: boolean): T {
-  let result = query;
+interface FilterBuilder {
+  eq(column: string, value: string): FilterBuilder;
+  gte(column: string, value: number): FilterBuilder;
+  lte(column: string, value: number): FilterBuilder;
+  contains(column: string, value: readonly string[]): FilterBuilder;
+  or(filters: string): FilterBuilder;
+}
+
+function applyFilters<T>(
+  query: T,
+  filters: PropertyFilters,
+  includeMarket: boolean
+): T {
+  let result = query as unknown as FilterBuilder;
   if (filters.category !== "All") {
     result = result.eq("category", filters.category);
   }
@@ -215,7 +219,7 @@ function applyFilters<
   if (filters.amenities && filters.amenities.length > 0) {
     result = result.contains("amenities", filters.amenities);
   }
-  return result;
+  return result as unknown as T;
 }
 
 const PROPERTIES_CACHE_TAG = "properties-v4";

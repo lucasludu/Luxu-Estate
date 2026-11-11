@@ -1,6 +1,11 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { USER_PROFILE } from "@/data/properties";
+import { DEFAULT_LOCALE, type Locale } from "@/i18n/config";
+import { getDictionarySync, type Dictionary } from "@/i18n";
+import { getServerI18n } from "@/i18n/server";
+import { LanguageSelector } from "./LanguageSelector";
 
 interface NavLinkItem {
   label: string;
@@ -8,21 +13,31 @@ interface NavLinkItem {
   active?: boolean;
 }
 
-const NAV_LINKS: NavLinkItem[] = [
-  { label: "Buy", href: "/?type=buy", active: true },
-  { label: "Rent", href: "/?type=rent" },
-  { label: "Sell", href: "#" },
-  { label: "Saved Homes", href: "#" },
-];
+function getNavLinks(dict: Dictionary): NavLinkItem[] {
+  return [
+    { label: dict.navbar.buy, href: "/?type=buy", active: true },
+    { label: dict.navbar.rent, href: "/?type=rent" },
+    { label: dict.navbar.sell, href: "#" },
+    { label: dict.navbar.savedHomes, href: "#" },
+  ];
+}
 
-export function Navbar() {
+function NavbarView({
+  locale,
+  dict,
+}: {
+  locale: Locale;
+  dict: Dictionary;
+}) {
+  const navLinks = getNavLinks(dict);
+
   return (
     <nav className="sticky top-0 z-50 bg-background-light/95 backdrop-blur-md border-b border-nordic-dark/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           <Link
             href="/"
-            aria-label="Go to LuxeEstate Home"
+            aria-label={dict.navbar.homeAriaLabel}
             className="flex-shrink-0 flex items-center gap-2 cursor-pointer group"
           >
             <div className="w-8 h-8 rounded-lg bg-nordic-dark group-hover:bg-mosque transition-colors flex items-center justify-center">
@@ -36,7 +51,7 @@ export function Navbar() {
           </Link>
 
           <div className="hidden md:flex items-center space-x-8">
-            {NAV_LINKS.map((link) => (
+            {navLinks.map((link) => (
               <Link
                 key={link.label}
                 href={link.href}
@@ -51,17 +66,21 @@ export function Navbar() {
             ))}
           </div>
 
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-4 sm:space-x-5">
+            <LanguageSelector
+              currentLocale={locale}
+              ariaLabel={dict.navbar.languageSelectorAriaLabel}
+            />
             <Link
               href="/"
-              aria-label="Search"
+              aria-label={dict.navbar.searchAriaLabel}
               className="text-nordic-dark hover:text-mosque transition-colors"
             >
               <span className="material-icons">search</span>
             </Link>
             <button
               type="button"
-              aria-label="Notifications"
+              aria-label={dict.navbar.notificationsAriaLabel}
               className="text-nordic-dark hover:text-mosque transition-colors relative"
             >
               <span className="material-icons">notifications_none</span>
@@ -69,8 +88,8 @@ export function Navbar() {
             </button>
             <button
               type="button"
-              aria-label="Profile"
-              className="flex items-center gap-2 pl-2 border-l border-nordic-dark/10 ml-2"
+              aria-label={dict.navbar.profileAriaLabel}
+              className="flex items-center gap-2 pl-2 border-l border-nordic-dark/10 ml-1"
             >
               <div className="relative w-9 h-9 rounded-full bg-gray-200 overflow-hidden ring-2 ring-transparent hover:ring-mosque transition-all">
                 <Image
@@ -89,7 +108,7 @@ export function Navbar() {
 
       <div className="md:hidden border-t border-nordic-dark/5 bg-background-light overflow-hidden h-0 transition-all duration-300">
         <div className="px-4 py-2 space-y-1">
-          {NAV_LINKS.map((link) => (
+          {navLinks.map((link) => (
             <Link
               key={link.label}
               href={link.href}
@@ -108,3 +127,18 @@ export function Navbar() {
   );
 }
 
+async function NavbarDynamic() {
+  const { locale, dict } = await getServerI18n();
+  return <NavbarView locale={locale} dict={dict} />;
+}
+
+export function Navbar() {
+  const fallbackDict = getDictionarySync(DEFAULT_LOCALE);
+  return (
+    <Suspense
+      fallback={<NavbarView locale={DEFAULT_LOCALE} dict={fallbackDict} />}
+    >
+      <NavbarDynamic />
+    </Suspense>
+  );
+}

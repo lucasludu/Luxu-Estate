@@ -1,0 +1,203 @@
+{
+  "navbar": {
+    "homeAriaLabel": "Zur LuxeEstate Startseite",
+    "buy": "Kaufen",
+    "rent": "Mieten",
+    "sell": "Verkaufen",
+    "savedHomes": "Gespeichert",
+    "searchAriaLabel": "Suchen",
+    "notificationsAriaLabel": "Benachrichtigungen",
+    "profileAriaLabel": "Profil",
+    "languageSelectorAriaLabel": "Sprache wählen",
+    "languageLabel": "Sprache"
+  },
+  "hero": {
+    "titlePrefix": "Finde dein",
+    "titleHighlight": "Refugium",
+    "titleSuffix": ".",
+    "searchPlaceholder": "Suche nach Stadt, Viertel oder Adresse...",
+    "searchButton": "Suchen"
+  },
+  "categories": {
+    "All": "Alle",
+    "House": "Haus",
+    "Apartment": "Wohnung",
+    "Villa": "Villa",
+    "Penthouse": "Penthouse"
+  },
+  "filters": {
+    "buttonLabel": "Filter",
+    "modalTitle": "Filter",
+    "closeAriaLabel": "Filter schließen",
+    "locationLabel": "Standort",
+    "locationPlaceholder": "Stadt, Viertel oder Adresse",
+    "priceRangeLabel": "Preisspanne",
+    "minPriceSliderAriaLabel": "Mindestpreis",
+    "maxPriceSliderAriaLabel": "Höchstpreis",
+    "minPriceLabel": "Min. Preis",
+    "maxPriceLabel": "Max. Preis",
+    "propertyTypeLabel": "Immobilientyp",
+    "anyType": "Alle Typen",
+    "bedroomsLabel": "Schlafzimmer",
+    "bathroomsLabel": "Badezimmer",
+    "any": "Alle",
+    "decreaseBedsAriaLabel": "Mindestanzahl Schlafzimmer verringern",
+    "increaseBedsAriaLabel": "Mindestanzahl Schlafzimmer erhöhen",
+    "decreaseBathsAriaLabel": "Mindestanzahl Badezimmer verringern",
+    "increaseBathsAriaLabel": "Mindestanzahl Badezimmer erhöhen",
+    "amenitiesSectionLabel": "Ausstattung & Merkmale",
+    "clearAll": "Alle Filter zurücksetzen",
+    "showOneHome": "{count} Immobilie anzeigen",
+    "showManyHomes": "{count} Immobilien anzeigen"
+  },
+  "featured": {
+    "title": "Ausgewählte Kollektionen",
+    "subtitle": "Kuratierte Immobilien für höchste Ansprüche.",
+    "viewAll": "Alle ansehen"
+  },
+  "market": {
+    "title": "Neu auf dem Markt",
+    "subtitle": "Neue Angebote dieser Woche.",
+    "filterAll": "Alle",
+    "filterBuy": "Kaufen",
+    "filterRent": "Mieten",
+    "forSaleChip": "Zum Verkauf",
+    "forRentChip": "Zur Miete",
+    "bedsChip": "{count}+ Betten",
+    "bathsChip": "{count}+ Bäder",
+    "removeFilterTitle": "Filter {label} entfernen",
+    "noResultsForQuery": "Keine Immobilien für „{query}“ gefunden",
+    "noResultsGeneric": "Keine passenden Immobilien gefunden",
+    "noResultsDescription": "Wir konnten keine Immobilien finden, die Ihren aktuellen Filtern entsprechen. Entfernen Sie einen Filter oder entdecken Sie ein anderes Reiseziel.",
+    "clearAllFilters": "Alle Filter zurücksetzen",
+    "popularDestinations": "Beliebte Reiseziele"
+  },
+  "card": {
+    "viewDetailsAriaLabel": "Details für {title} ansehen",
+    "featuredAriaLabel": "Empfohlene Immobilie {title}",
+    "saveAriaLabel": "{title} speichern",
+    "perMonth": "/Monat",
+    "beds": "Betten",
+    "baths": "Bäder"
+  },
+  "pagination": {
+    "ariaLabel": "Seitennavigation",
+    "previous": "Zurück",
+    "next": "Weiter",
+    "pageAriaLabel": "Seite {page}"
+  },
+  "property": {
+    "gallery": {
+      "defaultBadge": "Premium",
+      "forRent": "Zur Miete",
+      "new": "Neu",
+      "viewAllPhotos": "Alle Fotos ansehen",
+      "photoAriaLabel": "Foto {index} ansehen: {title}",
+      "dialogAriaLabel": "Fotogalerie von {title}",
+      "photoCounter": "Foto {current} von {total}",
+      "closeGalleryAriaLabel": "Galerie schließen",
+      "previousPhotoAriaLabel": "Vorheriges Foto",
+      "nextPhotoAriaLabel": "Nächstes Foto"
+    },
+    "features": {
+      "title": "Ausstattungsmerkmale",
+      "squareMeters": "Quadratmeter",
+      "bedrooms": "Schlafzimmer",
+      "bathrooms": "Badezimmer",
+      "garage": "Garage"
+    },
+    "about": {
+      "title": "Über diese Immobilie",
+      "paragraphs": {
+        "Experience modern luxury in this architecturally stunning home designed with an emphasis on indoor-outdoor living. The residence features floor-to-ceiling glass walls that flood the interiors with natural light.": "Erleben Sie modernen Luxus in diesem architektonisch beeindruckenden Zuhause, das mit einem Schwerpunkt auf fließendem Wohnen zwischen Innen- und Außenbereich entworfen wurde. Die Residenz verfügt über raumhohe Glaswände, die die Innenräume mit natürlichem Licht durchfluten.",
+        "The open-concept kitchen is equipped with top-of-the-line appliances and custom cabinetry, perfect for culinary enthusiasts. Retreat to the primary suite, a sanctuary of relaxation with a spa-inspired bath and private balcony.": "Die offene Küche ist mit erstklassigen Geräten und maßgefertigten Schränken ausgestattet – perfekt für Kulinarik-Liebhaber. Ziehen Sie sich in die Hauptsuite zurück, eine Oase der Entspannung mit einem Spa-inspirierten Bad und eigenem Balkon."
+      },
+      "expandedParagraph": "In einer erstklassigen Lage von {location} gelegen, vereint {title} zeitlose architektonische Handwerkskunst mit nachhaltiger moderner Technik und bietet private Landschaftsgärten, Schallschutzverglasung sowie bequemen Zugang zu gehobener Gastronomie, Parks und Kultur.",
+      "readMore": "Mehr lesen",
+      "readLess": "Weniger lesen"
+    },
+    "amenities": {
+      "title": "Ausstattung"
+    },
+    "mortgage": {
+      "title": "Geschätzte Rate",
+      "startingFrom": "Ab",
+      "monthlyRentalLease": "monatliche Miete",
+      "withDownPayment": "bei {pct}% Anzahlung",
+      "calculateMortgage": "Hypothek berechnen",
+      "hideCalculator": "Rechner ausblenden",
+      "downPayment": "Anzahlung",
+      "interestRate": "Zinssatz",
+      "loanTerm": "Laufzeit",
+      "yearsShort": "{years} J."
+    },
+    "agent": {
+      "chatAriaLabel": "Chat mit {name}",
+      "callAriaLabel": "{name} anrufen",
+      "scheduleVisit": "Besichtigung planen",
+      "contactAgent": "Makler kontaktieren",
+      "dismissAriaLabel": "Benachrichtigung schließen",
+      "chatFeedback": "Live-Chat mit {name} zu {title} wird gestartet...",
+      "callFeedback": "Rückruf von {name} für {title} wird angefordert...",
+      "visitFeedback": "Besichtigungsanfrage für {title} erhalten. {name} wird Ihren Termin in Kürze bestätigen.",
+      "contactFeedback": "Anfrage an {name} gesendet. Sie erhalten in Kürze ein persönliches Exposé per E-Mail.",
+      "roles": {
+        "Top Rated Agent": "Top-bewertete Maklerin",
+        "Senior Luxury Advisor": "Senior Luxusberaterin",
+        "Executive Director": "Geschäftsführende Direktorin",
+        "Coastal Estates Specialist": "Spezialistin für Küstenimmobilien",
+        "Manhattan Portfolio Director": "Portfolio-Direktorin Manhattan",
+        "Texas Luxury Partner": "Luxus-Partnerin Texas",
+        "Architectural Specialist": "Architekturspezialistin",
+        "Executive Property Director": "Executive Property Director"
+      }
+    },
+    "map": {
+      "viewOnMap": "Auf der Karte ansehen",
+      "mapAriaLabel": "Karte mit dem Standort von {title} in {location}"
+    }
+  },
+  "amenities": {
+    "Swimming Pool": "Swimmingpool",
+    "Gym": "Fitnessstudio",
+    "Parking": "Parkplatz",
+    "Air Conditioning": "Klimaanlage",
+    "High-speed Wifi": "Highspeed-WLAN",
+    "Patio / Terrace": "Patio / Terrasse",
+    "Smart Home System": "Smart-Home-System",
+    "Central Heating & Cooling": "Zentralheizung & Kühlung",
+    "Electric Vehicle Charging": "E-Auto-Ladestation",
+    "Private Gym": "Privates Fitnessstudio",
+    "Wine Cellar": "Weinkeller",
+    "Home Theater": "Heimkino",
+    "Private Elevator": "Privater Aufzug",
+    "24/7 Concierge": "24/7-Concierge",
+    "Sauna & Spa": "Sauna & Spa",
+    "Outdoor Kitchen": "Außenküche",
+    "Fireplace": "Kamin",
+    "Security System": "Sicherheitssystem",
+    "Ocean View": "Meerblick",
+    "Mountain View": "Bergblick",
+    "Garden": "Garten",
+    "Rooftop Terrace": "Dachterrasse"
+  },
+  "badges": {
+    "Exclusive": "Exklusiv",
+    "New": "Neu",
+    "New Arrival": "Neu eingetroffen",
+    "Rare Find": "Seltene Gelegenheit",
+    "Waterfront": "Direkt am Wasser",
+    "Featured": "Empfohlen",
+    "Premium": "Premium",
+    "FOR SALE": "ZUM VERKAUF",
+    "FOR RENT": "ZUR MIETE"
+  },
+  "notFound": {
+    "title": "Immobilie nicht gefunden",
+    "description": "Wir konnten die gesuchte Immobilie leider nicht finden. Möglicherweise wurde sie verkauft oder vom Markt genommen.",
+    "backToHome": "Zurück zur Startseite"
+  },
+  "footer": {
+    "copyright": "© 2023 LuxeEstate Inc. Alle Rechte vorbehalten."
+  }
+}

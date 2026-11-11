@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { formatMessage, type Dictionary } from "@/i18n";
 
 interface MortgageBannerProps {
   price: number;
   isMonthly?: boolean;
   estimatedMonthlyPayment: string;
+  dict: Dictionary;
 }
 
 const currencyFormatter = new Intl.NumberFormat("en-US", {
@@ -18,6 +20,7 @@ export function MortgageBanner({
   price,
   isMonthly,
   estimatedMonthlyPayment,
+  dict,
 }: MortgageBannerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [downPaymentPct, setDownPaymentPct] = useState(20);
@@ -35,8 +38,8 @@ export function MortgageBanner({
       : principal / totalPayments;
 
   const displayPayment = isOpen
-    ? `${currencyFormatter.format(Math.round(monthlyCalculated))}/mo`
-    : estimatedMonthlyPayment;
+    ? `${currencyFormatter.format(Math.round(monthlyCalculated))}${dict.card.perMonth}`
+    : estimatedMonthlyPayment.replace(/\/mo$/, dict.card.perMonth);
 
   return (
     <div className="bg-mosque/5 p-6 rounded-xl border border-mosque/10 space-y-6">
@@ -46,13 +49,17 @@ export function MortgageBanner({
             <span className="material-icons">calculate</span>
           </div>
           <div>
-            <h3 className="font-semibold text-nordic">Estimated Payment</h3>
+            <h3 className="font-semibold text-nordic">
+              {dict.property.mortgage.title}
+            </h3>
             <p className="text-sm text-nordic/60">
-              Starting from{" "}
+              {dict.property.mortgage.startingFrom}{" "}
               <strong className="text-mosque">{displayPayment}</strong>{" "}
               {isMonthly
-                ? "monthly rental lease"
-                : `with ${downPaymentPct}% down`}
+                ? dict.property.mortgage.monthlyRentalLease
+                : formatMessage(dict.property.mortgage.withDownPayment, {
+                    pct: downPaymentPct,
+                  })}
             </p>
           </div>
         </div>
@@ -61,7 +68,9 @@ export function MortgageBanner({
           onClick={() => setIsOpen((prev) => !prev)}
           className="whitespace-nowrap px-4 py-2 bg-white border border-nordic/10 rounded-lg text-sm font-semibold hover:border-mosque transition-colors text-nordic cursor-pointer"
         >
-          {isOpen ? "Hide Calculator" : "Calculate Mortgage"}
+          {isOpen
+            ? dict.property.mortgage.hideCalculator
+            : dict.property.mortgage.calculateMortgage}
         </button>
       </div>
 
@@ -69,7 +78,7 @@ export function MortgageBanner({
         <div className="pt-4 border-t border-mosque/10 grid grid-cols-1 sm:grid-cols-3 gap-4">
           <label className="block">
             <span className="text-xs font-medium text-nordic/70 flex justify-between mb-1">
-              <span>Down Payment</span>
+              <span>{dict.property.mortgage.downPayment}</span>
               <span className="font-semibold text-nordic">
                 {downPaymentPct}% (
                 {currencyFormatter.format(
@@ -91,7 +100,7 @@ export function MortgageBanner({
 
           <label className="block">
             <span className="text-xs font-medium text-nordic/70 flex justify-between mb-1">
-              <span>Interest Rate</span>
+              <span>{dict.property.mortgage.interestRate}</span>
               <span className="font-semibold text-nordic">{interestRate}%</span>
             </span>
             <input
@@ -107,7 +116,7 @@ export function MortgageBanner({
 
           <label className="block">
             <span className="text-xs font-medium text-nordic/70 block mb-1">
-              Loan Term
+              {dict.property.mortgage.loanTerm}
             </span>
             <div className="flex gap-2">
               {[15, 20, 30].map((term) => (
@@ -121,7 +130,9 @@ export function MortgageBanner({
                       : "flex-1 py-1.5 rounded-md text-xs font-medium bg-white border border-nordic/10 text-nordic hover:border-mosque cursor-pointer"
                   }
                 >
-                  {term} yrs
+                  {formatMessage(dict.property.mortgage.yearsShort, {
+                    years: term,
+                  })}
                 </button>
               ))}
             </div>
@@ -131,4 +142,3 @@ export function MortgageBanner({
     </div>
   );
 }
-

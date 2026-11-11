@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { buildHomeHref, type HomeQuery } from "@/lib/home-query";
+import { formatMessage, type Dictionary } from "@/i18n";
 
 interface PaginationProps {
   query: HomeQuery;
   totalPages: number;
+  dict: Dictionary;
 }
 
 function getPageItems(current: number, total: number): (number | "…")[] {
@@ -27,14 +29,14 @@ const idle =
 const disabled =
   "bg-white border border-nordic-dark/5 text-nordic-muted/50 pointer-events-none";
 
-export function Pagination({ query, totalPages }: PaginationProps) {
+export function Pagination({ query, totalPages, dict }: PaginationProps) {
   if (totalPages <= 1) return null;
   const { page } = query;
   const hrefFor = (p: number) => buildHomeHref({ ...query, page: p });
 
   return (
     <nav
-      aria-label="Pagination"
+      aria-label={dict.pagination.ariaLabel}
       className="mt-12 flex items-center justify-center gap-2"
     >
       {page > 1 ? (
@@ -44,12 +46,12 @@ export function Pagination({ query, totalPages }: PaginationProps) {
           className={`${baseButton} ${idle} gap-1`}
         >
           <span className="material-icons text-base">chevron_left</span>
-          Previous
+          {dict.pagination.previous}
         </Link>
       ) : (
         <span aria-disabled="true" className={`${baseButton} ${disabled} gap-1`}>
           <span className="material-icons text-base">chevron_left</span>
-          Previous
+          {dict.pagination.previous}
         </span>
       )}
 
@@ -70,7 +72,9 @@ export function Pagination({ query, totalPages }: PaginationProps) {
           <Link
             key={item}
             href={hrefFor(item)}
-            aria-label={`Page ${item}`}
+            aria-label={formatMessage(dict.pagination.pageAriaLabel, {
+              page: item,
+            })}
             className={`${baseButton} ${idle}`}
           >
             {item}
@@ -84,16 +88,15 @@ export function Pagination({ query, totalPages }: PaginationProps) {
           rel="next"
           className={`${baseButton} ${idle} gap-1`}
         >
-          Next
+          {dict.pagination.next}
           <span className="material-icons text-base">chevron_right</span>
         </Link>
       ) : (
         <span aria-disabled="true" className={`${baseButton} ${disabled} gap-1`}>
-          Next
+          {dict.pagination.next}
           <span className="material-icons text-base">chevron_right</span>
         </span>
       )}
     </nav>
   );
 }
-

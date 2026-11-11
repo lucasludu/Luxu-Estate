@@ -1,14 +1,20 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Property } from "@/data/properties";
+import { formatMessage, translateBadge, type Dictionary } from "@/i18n";
 
 interface FeaturedPropertyCardProps {
   property: Property;
+  dict: Dictionary;
 }
 
-export function FeaturedPropertyCard({ property }: FeaturedPropertyCardProps) {
+export function FeaturedPropertyCard({
+  property,
+  dict,
+}: FeaturedPropertyCardProps) {
   const href = `/properties/${property.slug}`;
   const coverImage = property.images[0];
+  const badgeText = translateBadge(dict, property.badge);
 
   return (
     <div className="group relative rounded-xl overflow-hidden shadow-soft bg-white cursor-pointer">
@@ -16,7 +22,9 @@ export function FeaturedPropertyCard({ property }: FeaturedPropertyCardProps) {
         <Link
           href={href}
           prefetch={true}
-          aria-label={`View details for ${property.title}`}
+          aria-label={formatMessage(dict.card.viewDetailsAriaLabel, {
+            title: property.title,
+          })}
           className="block w-full h-full relative"
         >
           <Image
@@ -31,17 +39,21 @@ export function FeaturedPropertyCard({ property }: FeaturedPropertyCardProps) {
             <div className="absolute bottom-0 inset-x-0 h-1/2 bg-gradient-to-t from-black/60 to-transparent opacity-60"></div>
           )}
         </Link>
-        {property.badge && (
+        {badgeText && (
           <div className="pointer-events-none absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider text-nordic-dark">
-            {property.badge}
+            {badgeText}
           </div>
         )}
         <button
           type="button"
           aria-label={
             property.featured
-              ? `Featured property ${property.title}`
-              : `Save ${property.title}`
+              ? formatMessage(dict.card.featuredAriaLabel, {
+                  title: property.title,
+                })
+              : formatMessage(dict.card.saveAriaLabel, {
+                  title: property.title,
+                })
           }
           aria-pressed={Boolean(property.featured)}
           className={
@@ -70,7 +82,9 @@ export function FeaturedPropertyCard({ property }: FeaturedPropertyCardProps) {
           <span className="text-xl font-semibold text-mosque">
             {property.priceFormatted}
             {property.isMonthly && (
-              <span className="text-sm font-normal text-nordic-muted">/mo</span>
+              <span className="text-sm font-normal text-nordic-muted">
+                {dict.card.perMonth}
+              </span>
             )}
           </span>
         </div>
@@ -78,11 +92,11 @@ export function FeaturedPropertyCard({ property }: FeaturedPropertyCardProps) {
         <div className="flex items-center gap-6 mt-6 pt-6 border-t border-nordic-dark/5">
           <div className="flex items-center gap-2 text-nordic-muted text-sm">
             <span className="material-icons text-lg">king_bed</span>{" "}
-            {property.beds} Beds
+            {property.beds} {dict.card.beds}
           </div>
           <div className="flex items-center gap-2 text-nordic-muted text-sm">
             <span className="material-icons text-lg">bathtub</span>{" "}
-            {property.baths} Baths
+            {property.baths} {dict.card.baths}
           </div>
           <div className="flex items-center gap-2 text-nordic-muted text-sm">
             <span className="material-icons text-lg">square_foot</span>{" "}
@@ -93,4 +107,3 @@ export function FeaturedPropertyCard({ property }: FeaturedPropertyCardProps) {
     </div>
   );
 }
-

@@ -1,10 +1,13 @@
-export function Footer() {
+import { Suspense } from "react";
+import { DEFAULT_LOCALE } from "@/i18n/config";
+import { getDictionarySync } from "@/i18n";
+import { getServerI18n } from "@/i18n/server";
+
+function FooterView({ copyright }: { copyright: string }) {
   return (
     <footer className="bg-white border-t border-slate-200 mt-12 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
-        <div className="text-sm text-nordic/50">
-          © 2023 LuxeEstate Inc. All rights reserved.
-        </div>
+        <div className="text-sm text-nordic/50">{copyright}</div>
         <div className="flex gap-6">
           <a
             className="text-nordic/40 hover:text-mosque transition-colors"
@@ -40,3 +43,16 @@ export function Footer() {
   );
 }
 
+async function FooterDynamic() {
+  const { dict } = await getServerI18n();
+  return <FooterView copyright={dict.footer.copyright} />;
+}
+
+export function Footer() {
+  const fallbackDict = getDictionarySync(DEFAULT_LOCALE);
+  return (
+    <Suspense fallback={<FooterView copyright={fallbackDict.footer.copyright} />}>
+      <FooterDynamic />
+    </Suspense>
+  );
+}

@@ -1,0 +1,203 @@
+{
+  "navbar": {
+    "homeAriaLabel": "Go to LuxeEstate Home",
+    "buy": "Buy",
+    "rent": "Rent",
+    "sell": "Sell",
+    "savedHomes": "Saved Homes",
+    "searchAriaLabel": "Search",
+    "notificationsAriaLabel": "Notifications",
+    "profileAriaLabel": "Profile",
+    "languageSelectorAriaLabel": "Select language",
+    "languageLabel": "Language"
+  },
+  "hero": {
+    "titlePrefix": "Find your",
+    "titleHighlight": "sanctuary",
+    "titleSuffix": ".",
+    "searchPlaceholder": "Search by city, neighborhood, or address...",
+    "searchButton": "Search"
+  },
+  "categories": {
+    "All": "All",
+    "House": "House",
+    "Apartment": "Apartment",
+    "Villa": "Villa",
+    "Penthouse": "Penthouse"
+  },
+  "filters": {
+    "buttonLabel": "Filters",
+    "modalTitle": "Filters",
+    "closeAriaLabel": "Close filters",
+    "locationLabel": "Location",
+    "locationPlaceholder": "City, neighborhood, or address",
+    "priceRangeLabel": "Price Range",
+    "minPriceSliderAriaLabel": "Minimum price",
+    "maxPriceSliderAriaLabel": "Maximum price",
+    "minPriceLabel": "Min Price",
+    "maxPriceLabel": "Max Price",
+    "propertyTypeLabel": "Property Type",
+    "anyType": "Any Type",
+    "bedroomsLabel": "Bedrooms",
+    "bathroomsLabel": "Bathrooms",
+    "any": "Any",
+    "decreaseBedsAriaLabel": "Decrease minimum bedrooms",
+    "increaseBedsAriaLabel": "Increase minimum bedrooms",
+    "decreaseBathsAriaLabel": "Decrease minimum bathrooms",
+    "increaseBathsAriaLabel": "Increase minimum bathrooms",
+    "amenitiesSectionLabel": "Amenities & Features",
+    "clearAll": "Clear all filters",
+    "showOneHome": "Show {count} Home",
+    "showManyHomes": "Show {count} Homes"
+  },
+  "featured": {
+    "title": "Featured Collections",
+    "subtitle": "Curated properties for the discerning eye.",
+    "viewAll": "View all"
+  },
+  "market": {
+    "title": "New in Market",
+    "subtitle": "Fresh opportunities added this week.",
+    "filterAll": "All",
+    "filterBuy": "Buy",
+    "filterRent": "Rent",
+    "forSaleChip": "For Sale",
+    "forRentChip": "For Rent",
+    "bedsChip": "{count}+ Beds",
+    "bathsChip": "{count}+ Baths",
+    "removeFilterTitle": "Remove {label} filter",
+    "noResultsForQuery": "No properties found for “{query}”",
+    "noResultsGeneric": "No matching sanctuaries found",
+    "noResultsDescription": "We couldn't find any properties matching your current filters. Try removing a filter below or exploring another destination.",
+    "clearAllFilters": "Clear all filters",
+    "popularDestinations": "Popular Destinations"
+  },
+  "card": {
+    "viewDetailsAriaLabel": "View details for {title}",
+    "featuredAriaLabel": "Featured property {title}",
+    "saveAriaLabel": "Save {title}",
+    "perMonth": "/mo",
+    "beds": "Beds",
+    "baths": "Baths"
+  },
+  "pagination": {
+    "ariaLabel": "Pagination",
+    "previous": "Previous",
+    "next": "Next",
+    "pageAriaLabel": "Page {page}"
+  },
+  "property": {
+    "gallery": {
+      "defaultBadge": "Premium",
+      "forRent": "For Rent",
+      "new": "New",
+      "viewAllPhotos": "View All Photos",
+      "photoAriaLabel": "View photo {index}: {title}",
+      "dialogAriaLabel": "{title} photo gallery",
+      "photoCounter": "Photo {current} of {total}",
+      "closeGalleryAriaLabel": "Close gallery",
+      "previousPhotoAriaLabel": "Previous photo",
+      "nextPhotoAriaLabel": "Next photo"
+    },
+    "features": {
+      "title": "Property Features",
+      "squareMeters": "Square Meters",
+      "bedrooms": "Bedrooms",
+      "bathrooms": "Bathrooms",
+      "garage": "Garage"
+    },
+    "about": {
+      "title": "About this home",
+      "paragraphs": {
+        "Experience modern luxury in this architecturally stunning home designed with an emphasis on indoor-outdoor living. The residence features floor-to-ceiling glass walls that flood the interiors with natural light.": "Experience modern luxury in this architecturally stunning home designed with an emphasis on indoor-outdoor living. The residence features floor-to-ceiling glass walls that flood the interiors with natural light.",
+        "The open-concept kitchen is equipped with top-of-the-line appliances and custom cabinetry, perfect for culinary enthusiasts. Retreat to the primary suite, a sanctuary of relaxation with a spa-inspired bath and private balcony.": "The open-concept kitchen is equipped with top-of-the-line appliances and custom cabinetry, perfect for culinary enthusiasts. Retreat to the primary suite, a sanctuary of relaxation with a spa-inspired bath and private balcony."
+      },
+      "expandedParagraph": "Situated in a prime enclave of {location}, {title} combines timeless architectural craftsmanship with sustainable modern engineering, offering private landscaped grounds, acoustic-grade glazing, and effortless access to fine dining, parks, and cultural landmarks.",
+      "readMore": "Read more",
+      "readLess": "Read less"
+    },
+    "amenities": {
+      "title": "Amenities"
+    },
+    "mortgage": {
+      "title": "Estimated Payment",
+      "startingFrom": "Starting from",
+      "monthlyRentalLease": "monthly rental lease",
+      "withDownPayment": "with {pct}% down",
+      "calculateMortgage": "Calculate Mortgage",
+      "hideCalculator": "Hide Calculator",
+      "downPayment": "Down Payment",
+      "interestRate": "Interest Rate",
+      "loanTerm": "Loan Term",
+      "yearsShort": "{years} yrs"
+    },
+    "agent": {
+      "chatAriaLabel": "Chat with {name}",
+      "callAriaLabel": "Call {name}",
+      "scheduleVisit": "Schedule Visit",
+      "contactAgent": "Contact Agent",
+      "dismissAriaLabel": "Dismiss notification",
+      "chatFeedback": "Starting live chat with {name} about {title}...",
+      "callFeedback": "Requesting a call from {name} for {title}...",
+      "visitFeedback": "Visit request received for {title}. {name} will confirm your appointment shortly.",
+      "contactFeedback": "Inquiry sent to {name}. Expect a personalized dossier in your inbox.",
+      "roles": {
+        "Top Rated Agent": "Top Rated Agent",
+        "Senior Luxury Advisor": "Senior Luxury Advisor",
+        "Executive Director": "Executive Director",
+        "Coastal Estates Specialist": "Coastal Estates Specialist",
+        "Manhattan Portfolio Director": "Manhattan Portfolio Director",
+        "Texas Luxury Partner": "Texas Luxury Partner",
+        "Architectural Specialist": "Architectural Specialist",
+        "Executive Property Director": "Executive Property Director"
+      }
+    },
+    "map": {
+      "viewOnMap": "View on Map",
+      "mapAriaLabel": "Map showing location of {title} at {location}"
+    }
+  },
+  "amenities": {
+    "Swimming Pool": "Swimming Pool",
+    "Gym": "Gym",
+    "Parking": "Parking",
+    "Air Conditioning": "Air Conditioning",
+    "High-speed Wifi": "High-speed Wifi",
+    "Patio / Terrace": "Patio / Terrace",
+    "Smart Home System": "Smart Home System",
+    "Central Heating & Cooling": "Central Heating & Cooling",
+    "Electric Vehicle Charging": "Electric Vehicle Charging",
+    "Private Gym": "Private Gym",
+    "Wine Cellar": "Wine Cellar",
+    "Home Theater": "Home Theater",
+    "Private Elevator": "Private Elevator",
+    "24/7 Concierge": "24/7 Concierge",
+    "Sauna & Spa": "Sauna & Spa",
+    "Outdoor Kitchen": "Outdoor Kitchen",
+    "Fireplace": "Fireplace",
+    "Security System": "Security System",
+    "Ocean View": "Ocean View",
+    "Mountain View": "Mountain View",
+    "Garden": "Garden",
+    "Rooftop Terrace": "Rooftop Terrace"
+  },
+  "badges": {
+    "Exclusive": "Exclusive",
+    "New": "New",
+    "New Arrival": "New Arrival",
+    "Rare Find": "Rare Find",
+    "Waterfront": "Waterfront",
+    "Featured": "Featured",
+    "Premium": "Premium",
+    "FOR SALE": "FOR SALE",
+    "FOR RENT": "FOR RENT"
+  },
+  "notFound": {
+    "title": "Property Not Found",
+    "description": "We couldn't find the property you're looking for. It may have been sold or removed from the market.",
+    "backToHome": "Back to Home"
+  },
+  "footer": {
+    "copyright": "© 2023 LuxeEstate Inc. All rights reserved."
+  }
+}
