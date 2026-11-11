@@ -16,6 +16,24 @@ export interface PropertyFilters {
   category: PropertyCategory;
   market: MarketFilter;
   q: string;
+  minPrice?: number;
+  maxPrice?: number;
+  beds?: number;
+  baths?: number;
+  amenities?: string[];
+}
+
+export interface FilterablePropertySummary {
+  id: string;
+  title: string;
+  location: string;
+  price: number;
+  beds: number;
+  baths: number;
+  category: Exclude<PropertyCategory, "All">;
+  listingType: ListingType;
+  featured: boolean;
+  amenities: string[];
 }
 
 interface PropertyRow {
@@ -161,6 +179,9 @@ function sanitizeSearch(term: string) {
 function applyFilters<
   T extends {
     eq: (column: string, value: string) => T;
+    gte: (column: string, value: number) => T;
+    lte: (column: string, value: number) => T;
+    contains: (column: string, value: readonly string[]) => T;
     or: (filters: string) => T;
   },
 >(query: T, filters: PropertyFilters, includeMarket: boolean): T {
@@ -178,7 +199,58 @@ function applyFilters<
   if (term) {
     result = result.or(`title.ilike.%${term}%,location.ilike.%${term}%`);
   }
+  if (typeof filters.minPrice === "number" && filters.minPrice > 0) {
+    result = result.gte("price", filters.minPrice);
+  }
+  if (typeof filters.maxPrice === "number" && filters.maxPrice > 0) {
+    result = result.lte("price", filters.maxPrice);
+  }
+  if (typeof filters.beds === "number" && filters.beds > 0) {
+    result = result.gte("beds", filters.beds);
+  }
+  if (typeof filters.baths === "number" && filters.baths > 0) {
+    result = result.gte("baths", filters.baths);
+  }
+  if (filters.amenities && filters.amenities.length > 0) {
+    result = result.contains("amenities", filters.amenities);
+  }
   return result;
+}
+
+const PROPERTIES_CACHE_TAG = "properties-v2";
+
+export async function getFilterablePropertySummaries(): Promise<
+  FilterablePropertySummary[]
+> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("properties", PROPERTIES_CACHE_TAG);
+
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("properties")
+    .select(
+      "id, title, location, price, beds, baths, category, listing_type, featured, amenities"
+    );
+
+  if (error) {
+    throw new Error(`Failed to load property summaries: ${error.message}`);
+  }
+
+  return (data ?? []).map((row) => ({
+    id: String(row.id),
+    title: String(row.title),
+    location: String(row.location),
+    price: Number(row.price),
+    beds: Number(row.beds),
+    baths: Number(row.baths),
+    category: row.category as Exclude<PropertyCategory, "All">,
+    listingType: row.listing_type as ListingType,
+    featured: Boolean(row.featured),
+    amenities: Array.isArray(row.amenities)
+      ? (row.amenities as string[])
+      : DEFAULT_AMENITIES,
+  }));
 }
 
 export async function getFeaturedProperties(
@@ -186,7 +258,7 @@ export async function getFeaturedProperties(
 ): Promise<Property[]> {
   "use cache";
   cacheLife("hours");
-  cacheTag("properties");
+  cacheTag("properties", PROPERTIES_CACHE_TAG);
 
   const supabase = createSupabaseServerClient();
   const query = applyFilters(
@@ -215,7 +287,7 @@ export async function getMarketProperties(
 ): Promise<MarketPage> {
   "use cache";
   cacheLife("hours");
-  cacheTag("properties");
+  cacheTag("properties", PROPERTIES_CACHE_TAG);
 
   const from = (page - 1) * PAGE_SIZE;
   const supabase = createSupabaseServerClient();

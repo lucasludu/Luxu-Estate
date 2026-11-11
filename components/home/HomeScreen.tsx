@@ -3,7 +3,11 @@ import { HeroSearch } from "./HeroSearch";
 import { FeaturedCollections } from "./FeaturedCollections";
 import { NewInMarket } from "./NewInMarket";
 import { buildHomeHref, parseHomeQuery } from "@/lib/home-query";
-import { getFeaturedProperties, getMarketProperties } from "@/lib/properties";
+import {
+  getFeaturedProperties,
+  getFilterablePropertySummaries,
+  getMarketProperties,
+} from "@/lib/properties";
 
 interface HomeScreenProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -12,9 +16,10 @@ interface HomeScreenProps {
 export async function HomeScreen({ searchParams }: HomeScreenProps) {
   const query = parseHomeQuery(await searchParams);
 
-  const [featured, market] = await Promise.all([
+  const [featured, market, summaries] = await Promise.all([
     getFeaturedProperties(query),
     getMarketProperties(query, query.page),
+    getFilterablePropertySummaries(),
   ]);
 
   if (query.page > market.totalPages) {
@@ -23,7 +28,7 @@ export async function HomeScreen({ searchParams }: HomeScreenProps) {
 
   return (
     <>
-      <HeroSearch query={query} />
+      <HeroSearch query={query} properties={summaries} />
       <FeaturedCollections properties={featured} />
       <NewInMarket
         properties={market.items}

@@ -1,12 +1,15 @@
 import { PROPERTY_CATEGORIES } from "@/data/properties";
 import { buildHomeHref, type HomeQuery } from "@/lib/home-query";
+import type { FilterablePropertySummary } from "@/lib/properties";
 import { CategoryPill } from "./CategoryPill";
+import { FiltersModal } from "./FiltersModal";
 
 interface HeroSearchProps {
   query: HomeQuery;
+  properties: FilterablePropertySummary[];
 }
 
-export function HeroSearch({ query }: HeroSearchProps) {
+export function HeroSearch({ query, properties }: HeroSearchProps) {
   return (
     <section className="py-12 md:py-16">
       <div className="max-w-3xl mx-auto text-center space-y-8">
@@ -30,17 +33,37 @@ export function HeroSearch({ query }: HeroSearchProps) {
           {query.market !== "all" && (
             <input type="hidden" name="type" value={query.market} />
           )}
+          {typeof query.minPrice === "number" && query.minPrice > 0 && (
+            <input type="hidden" name="minPrice" value={query.minPrice} />
+          )}
+          {typeof query.maxPrice === "number" && query.maxPrice > 0 && (
+            <input type="hidden" name="maxPrice" value={query.maxPrice} />
+          )}
+          {typeof query.beds === "number" && query.beds > 0 && (
+            <input type="hidden" name="beds" value={query.beds} />
+          )}
+          {typeof query.baths === "number" && query.baths > 0 && (
+            <input type="hidden" name="baths" value={query.baths} />
+          )}
+          {query.amenities.length > 0 && (
+            <input
+              type="hidden"
+              name="amenities"
+              value={query.amenities.join(",")}
+            />
+          )}
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
             <span className="material-icons text-nordic-muted text-2xl group-focus-within:text-mosque transition-colors">
               search
             </span>
           </div>
           <input
+            key={query.q}
             type="text"
             name="q"
             defaultValue={query.q}
             placeholder="Search by city, neighborhood, or address..."
-            className="block w-full pl-12 pr-4 py-4 rounded-xl border-none outline-none bg-white text-nordic-dark shadow-soft placeholder-nordic-muted/60 focus:ring-2 focus:ring-mosque focus:bg-white transition-all text-lg"
+            className="block w-full pl-12 pr-28 py-4 rounded-xl border-none outline-none bg-white text-nordic-dark shadow-soft placeholder-nordic-muted/60 focus:ring-2 focus:ring-mosque focus:bg-white transition-all text-lg"
           />
           <button
             type="submit"
@@ -60,12 +83,7 @@ export function HeroSearch({ query }: HeroSearchProps) {
             />
           ))}
           <div className="w-px h-6 bg-nordic-dark/10 mx-2"></div>
-          <button
-            type="button"
-            className="whitespace-nowrap flex items-center gap-1 px-4 py-2 rounded-full text-nordic-dark font-medium text-sm hover:bg-black/5 transition-colors cursor-pointer"
-          >
-            <span className="material-icons text-base">tune</span> Filters
-          </button>
+          <FiltersModal query={query} properties={properties} />
         </div>
       </div>
     </section>

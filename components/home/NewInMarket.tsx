@@ -56,9 +56,15 @@ export function NewInMarket({
       </div>
 
       {properties.length === 0 ? (
-        <p className="text-center text-nordic-muted py-16">
-          No properties match your search.
-        </p>
+        <div className="text-center py-16 space-y-4">
+          <p className="text-nordic-muted">No properties match your search.</p>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-mosque hover:opacity-80 underline underline-offset-4"
+          >
+            Clear all filters
+          </Link>
+        </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {properties.map((property) => (

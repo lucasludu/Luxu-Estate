@@ -57,6 +57,20 @@ export const PROPERTY_CATEGORIES: PropertyCategory[] = [
   "Penthouse",
 ];
 
+export interface FilterAmenityOption {
+  label: string;
+  icon: string;
+}
+
+export const FILTER_AMENITIES: FilterAmenityOption[] = [
+  { label: "Swimming Pool", icon: "pool" },
+  { label: "Gym", icon: "fitness_center" },
+  { label: "Parking", icon: "local_parking" },
+  { label: "Air Conditioning", icon: "ac_unit" },
+  { label: "High-speed Wifi", icon: "wifi" },
+  { label: "Patio / Terrace", icon: "deck" },
+];
+
 export const USER_PROFILE = {
   name: "Alex Morgan",
   avatar:
