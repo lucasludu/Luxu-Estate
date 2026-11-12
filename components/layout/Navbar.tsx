@@ -1,11 +1,11 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { USER_PROFILE } from "@/data/properties";
 import { DEFAULT_LOCALE, type Locale } from "@/i18n/config";
 import { getDictionarySync, type Dictionary } from "@/i18n";
 import { getServerI18n } from "@/i18n/server";
+import { getCurrentUser, type AuthUserProfile } from "@/lib/auth";
 import { LanguageSelector } from "./LanguageSelector";
+import { NavbarUserMenu } from "./NavbarUserMenu";
 
 interface NavLinkItem {
   label: string;
@@ -25,9 +25,11 @@ function getNavLinks(dict: Dictionary): NavLinkItem[] {
 function NavbarView({
   locale,
   dict,
+  user = null,
 }: {
   locale: Locale;
   dict: Dictionary;
+  user?: AuthUserProfile | null;
 }) {
   const navLinks = getNavLinks(dict);
 
@@ -86,22 +88,12 @@ function NavbarView({
               <span className="material-icons">notifications_none</span>
               <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-background-light"></span>
             </button>
-            <button
-              type="button"
-              aria-label={dict.navbar.profileAriaLabel}
-              className="flex items-center gap-2 pl-2 border-l border-nordic-dark/10 ml-1"
-            >
-              <div className="relative w-9 h-9 rounded-full bg-gray-200 overflow-hidden ring-2 ring-transparent hover:ring-mosque transition-all">
-                <Image
-                  alt={USER_PROFILE.name}
-                  className="object-cover"
-                  data-alt="User profile portrait smiling"
-                  fill
-                  sizes="36px"
-                  src={USER_PROFILE.avatar}
-                />
-              </div>
-            </button>
+            <NavbarUserMenu
+              initialUser={user}
+              profileAriaLabel={dict.navbar.profileAriaLabel}
+              signInLabel={dict.navbar.signIn}
+              signOutLabel={dict.navbar.signOut}
+            />
           </div>
         </div>
       </div>
@@ -128,8 +120,11 @@ function NavbarView({
 }
 
 async function NavbarDynamic() {
-  const { locale, dict } = await getServerI18n();
-  return <NavbarView locale={locale} dict={dict} />;
+  const [{ locale, dict }, user] = await Promise.all([
+    getServerI18n(),
+    getCurrentUser(),
+  ]);
+  return <NavbarView locale={locale} dict={dict} user={user} />;
 }
 
 export function Navbar() {

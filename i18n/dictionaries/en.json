@@ -9,7 +9,9 @@
     "notificationsAriaLabel": "Notifications",
     "profileAriaLabel": "Profile",
     "languageSelectorAriaLabel": "Select language",
-    "languageLabel": "Language"
+    "languageLabel": "Language",
+    "signIn": "Sign in",
+    "signOut": "Sign out"
   },
   "hero": {
     "titlePrefix": "Find your",
