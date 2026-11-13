@@ -13,13 +13,23 @@ interface NavLinkItem {
   active?: boolean;
 }
 
-function getNavLinks(dict: Dictionary): NavLinkItem[] {
-  return [
+function getNavLinks(
+  dict: Dictionary,
+  user: AuthUserProfile | null
+): NavLinkItem[] {
+  const links: NavLinkItem[] = [
     { label: dict.navbar.buy, href: "/?type=buy", active: true },
     { label: dict.navbar.rent, href: "/?type=rent" },
     { label: dict.navbar.sell, href: "#" },
     { label: dict.navbar.savedHomes, href: "#" },
   ];
+  if (user?.role === "admin") {
+    links.push({
+      label: dict.navbar.adminDashboard,
+      href: "/admin/properties",
+    });
+  }
+  return links;
 }
 
 function NavbarView({
@@ -31,7 +41,7 @@ function NavbarView({
   dict: Dictionary;
   user?: AuthUserProfile | null;
 }) {
-  const navLinks = getNavLinks(dict);
+  const navLinks = getNavLinks(dict, user);
 
   return (
     <nav className="sticky top-0 z-50 bg-background-light/95 backdrop-blur-md border-b border-nordic-dark/10">
@@ -93,6 +103,7 @@ function NavbarView({
               profileAriaLabel={dict.navbar.profileAriaLabel}
               signInLabel={dict.navbar.signIn}
               signOutLabel={dict.navbar.signOut}
+              adminDashboardLabel={dict.navbar.adminDashboard}
             />
           </div>
         </div>

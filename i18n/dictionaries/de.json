@@ -11,7 +11,8 @@
     "languageSelectorAriaLabel": "Sprache wählen",
     "languageLabel": "Sprache",
     "signIn": "Anmelden",
-    "signOut": "Abmelden"
+    "signOut": "Abmelden",
+    "adminDashboard": "Admin-Dashboard"
   },
   "hero": {
     "titlePrefix": "Finde dein",
@@ -201,5 +202,75 @@
   },
   "footer": {
     "copyright": "© 2023 LuxeEstate Inc. Alle Rechte vorbehalten."
+  },
+  "admin": {
+    "nav": {
+      "properties": "Immobilien",
+      "users": "Benutzer & Rollen",
+      "backToSite": "Zurück zum Katalog",
+      "adminBadge": "Administrator"
+    },
+    "properties": {
+      "title": "Aktuelle Immobilien",
+      "subtitle": "Verwalten Sie Ihr Immobilienportfolio und überwachen Sie aktive Angebote.",
+      "searchPlaceholder": "Nach Titel oder Standort suchen...",
+      "totalListings": "Gesamtangebote",
+      "activeForSale": "Aktiv zum Verkauf",
+      "activeForRent": "Aktiv zur Miete",
+      "featuredListings": "Empfohlene Immobilien",
+      "tablePropertyDetails": "Immobiliendetails",
+      "tablePrice": "Preis",
+      "tableStatus": "Status",
+      "tableActions": "Aktionen",
+      "monthlyEst": "Monatl. Rate: {amount}",
+      "monthlyRent": "Monatsmiete: {amount}",
+      "statusActiveSale": "Zum Verkauf",
+      "statusActiveRent": "Zur Miete",
+      "viewProperty": "Details ansehen",
+      "showingResults": "{from} bis {to} von {total} Ergebnissen",
+      "noPropertiesFound": "Keine Immobilien entsprechen den aktuellen Filtern."
+    },
+    "users": {
+      "title": "Benutzerverzeichnis",
+      "subtitle": "Verwalten Sie Benutzerzugriffe und Rollen für Ihre Plattform.",
+      "searchPlaceholder": "Nach Name, E-Mail oder ID suchen...",
+      "tabAll": "Alle Benutzer",
+      "tabAdmins": "Admins",
+      "tabBrokers": "Makler (Broker)",
+      "tabAgents": "Agenten",
+      "tabViewers": "Betrachter",
+      "colUserDetails": "Benutzerdetails",
+      "colRoleStatus": "Rolle & Status",
+      "colAccessInfo": "Zugriff & Aktivität",
+      "colActions": "Aktionen",
+      "accessLevelLabel": "Zugriffsstufe",
+      "accessLevelValue": "Stufe {level}",
+      "lastLoginLabel": "Letzter Login",
+      "providerLabel": "Anbieter",
+      "changeRole": "Rolle ändern",
+      "updating": "Wird gespeichert...",
+      "youBadge": "Sie",
+      "suspendUser": "Benutzer sperren",
+      "activateUser": "Benutzer aktivieren",
+      "selfEditNote": "Aktueller Admin",
+      "selfDemoteError": "Sie können Ihre eigene Administratorrolle nicht entfernen.",
+      "selfSuspendError": "Sie können Ihr eigenes Konto nicht sperren.",
+      "roleUpdatedSuccess": "Rolle erfolgreich aktualisiert.",
+      "statusUpdatedSuccess": "Benutzerstatus aktualisiert.",
+      "showingUsers": "{shown} von {total} Benutzern angezeigt",
+      "noUsersFound": "Keine passenden Benutzer gefunden.",
+      "roles": {
+        "admin": "Administrator",
+        "broker": "Senior Broker",
+        "agent": "Agent",
+        "viewer": "Betrachter"
+      },
+      "statuses": {
+        "active": "Aktiv",
+        "away": "Abwesend",
+        "inactive": "Inaktiv",
+        "suspended": "Gesperrt"
+      }
+    }
   }
 }

@@ -11,7 +11,8 @@
     "languageSelectorAriaLabel": "Select language",
     "languageLabel": "Language",
     "signIn": "Sign in",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "adminDashboard": "Admin Dashboard"
   },
   "hero": {
     "titlePrefix": "Find your",
@@ -201,5 +202,75 @@
   },
   "footer": {
     "copyright": "© 2023 LuxeEstate Inc. All rights reserved."
+  },
+  "admin": {
+    "nav": {
+      "properties": "Properties",
+      "users": "Users & Roles",
+      "backToSite": "Back to Storefront",
+      "adminBadge": "Administrator"
+    },
+    "properties": {
+      "title": "My Properties",
+      "subtitle": "Manage your luxury portfolio and track current listings.",
+      "searchPlaceholder": "Search by title or location...",
+      "totalListings": "Total Listings",
+      "activeForSale": "Active for Sale",
+      "activeForRent": "Active for Rent",
+      "featuredListings": "Featured Properties",
+      "tablePropertyDetails": "Property Details",
+      "tablePrice": "Price",
+      "tableStatus": "Status",
+      "tableActions": "Actions",
+      "monthlyEst": "Monthly est.: {amount}",
+      "monthlyRent": "Monthly rent: {amount}",
+      "statusActiveSale": "For Sale",
+      "statusActiveRent": "For Rent",
+      "viewProperty": "View Property",
+      "showingResults": "Showing {from} to {to} of {total} results",
+      "noPropertiesFound": "No properties match the current filter."
+    },
+    "users": {
+      "title": "User Directory",
+      "subtitle": "Manage user access and roles for your platform.",
+      "searchPlaceholder": "Search by name, email, or ID...",
+      "tabAll": "All Users",
+      "tabAdmins": "Admins",
+      "tabBrokers": "Brokers",
+      "tabAgents": "Agents",
+      "tabViewers": "Viewers",
+      "colUserDetails": "User Details",
+      "colRoleStatus": "Role & Status",
+      "colAccessInfo": "Access & Activity",
+      "colActions": "Actions",
+      "accessLevelLabel": "Access Level",
+      "accessLevelValue": "Level {level}",
+      "lastLoginLabel": "Last Login",
+      "providerLabel": "Auth Provider",
+      "changeRole": "Change Role",
+      "updating": "Updating...",
+      "youBadge": "You",
+      "suspendUser": "Suspend User",
+      "activateUser": "Activate User",
+      "selfEditNote": "Current Admin",
+      "selfDemoteError": "You cannot remove your own Administrator role.",
+      "selfSuspendError": "You cannot suspend your own account.",
+      "roleUpdatedSuccess": "Role updated successfully.",
+      "statusUpdatedSuccess": "User status updated.",
+      "showingUsers": "Showing {shown} of {total} users",
+      "noUsersFound": "No users found matching your search.",
+      "roles": {
+        "admin": "Administrator",
+        "broker": "Senior Broker",
+        "agent": "Agent",
+        "viewer": "Viewer"
+      },
+      "statuses": {
+        "active": "Active",
+        "away": "Away",
+        "inactive": "Inactive",
+        "suspended": "Suspended"
+      }
+    }
   }
 }

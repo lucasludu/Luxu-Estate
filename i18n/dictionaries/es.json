@@ -11,7 +11,8 @@
     "languageSelectorAriaLabel": "Seleccionar idioma",
     "languageLabel": "Idioma",
     "signIn": "Iniciar sesión",
-    "signOut": "Cerrar sesión"
+    "signOut": "Cerrar sesión",
+    "adminDashboard": "Panel Admin"
   },
   "hero": {
     "titlePrefix": "Encuentra tu",
@@ -201,5 +202,75 @@
   },
   "footer": {
     "copyright": "© 2023 LuxeEstate Inc. Todos los derechos reservados."
+  },
+  "admin": {
+    "nav": {
+      "properties": "Propiedades",
+      "users": "Usuarios y Roles",
+      "backToSite": "Volver al Catálogo",
+      "adminBadge": "Administrador"
+    },
+    "properties": {
+      "title": "Propiedades Actuales",
+      "subtitle": "Supervisa el portafolio inmobiliario y el estado de cada propiedad.",
+      "searchPlaceholder": "Buscar por título o ubicación...",
+      "totalListings": "Total Propiedades",
+      "activeForSale": "Activas en Venta",
+      "activeForRent": "Activas en Alquiler",
+      "featuredListings": "Propiedades Destacadas",
+      "tablePropertyDetails": "Detalles de la Propiedad",
+      "tablePrice": "Precio",
+      "tableStatus": "Estado",
+      "tableActions": "Acciones",
+      "monthlyEst": "Cuota est.: {amount}",
+      "monthlyRent": "Alquiler mensual: {amount}",
+      "statusActiveSale": "En Venta",
+      "statusActiveRent": "En Alquiler",
+      "viewProperty": "Ver ficha",
+      "showingResults": "Mostrando {from} a {to} de {total} propiedades",
+      "noPropertiesFound": "No se encontraron propiedades con los filtros actuales."
+    },
+    "users": {
+      "title": "Directorio de Usuarios",
+      "subtitle": "Gestiona los accesos y edita los roles de los usuarios autenticados.",
+      "searchPlaceholder": "Buscar por nombre, correo o ID...",
+      "tabAll": "Todos",
+      "tabAdmins": "Admins",
+      "tabBrokers": "Brokers",
+      "tabAgents": "Agentes",
+      "tabViewers": "Visitantes",
+      "colUserDetails": "Detalles del Usuario",
+      "colRoleStatus": "Rol y Estado",
+      "colAccessInfo": "Acceso y Actividad",
+      "colActions": "Acciones",
+      "accessLevelLabel": "Nivel de Acceso",
+      "accessLevelValue": "Nivel {level}",
+      "lastLoginLabel": "Último Acceso",
+      "providerLabel": "Proveedor",
+      "changeRole": "Cambiar Rol",
+      "updating": "Guardando...",
+      "youBadge": "Tú",
+      "suspendUser": "Suspender Usuario",
+      "activateUser": "Reactivar Usuario",
+      "selfEditNote": "Admin actual",
+      "selfDemoteError": "No puedes quitarte a ti mismo el rol de Administrador.",
+      "selfSuspendError": "No puedes suspender tu propia cuenta.",
+      "roleUpdatedSuccess": "Rol actualizado correctamente.",
+      "statusUpdatedSuccess": "Estado del usuario actualizado.",
+      "showingUsers": "Mostrando {shown} de {total} usuarios",
+      "noUsersFound": "No se encontraron usuarios que coincidan con tu búsqueda.",
+      "roles": {
+        "admin": "Administrador",
+        "broker": "Senior Broker",
+        "agent": "Agente",
+        "viewer": "Visitante"
+      },
+      "statuses": {
+        "active": "Activo",
+        "away": "Ausente",
+        "inactive": "Inactivo",
+        "suspended": "Suspendido"
+      }
+    }
   }
 }

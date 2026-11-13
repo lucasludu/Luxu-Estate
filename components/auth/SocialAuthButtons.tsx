@@ -1,32 +1,35 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { SocialProvider } from "@/app/actions/auth";
 
 export function SocialAuthButtons() {
   const [loadingProvider, setLoadingProvider] =
     useState<SocialProvider | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  useEffect(() => {
+  const [errorMessage, setErrorMessage] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
     const params = new URLSearchParams(window.location.search);
-    const err = params.get("error_description") || params.get("error");
-    if (err) {
-      setErrorMessage(err);
-    }
-  }, []);
+    return params.get("error_description") || params.get("error") || null;
+  });
 
   async function handleOAuthSignIn(provider: SocialProvider) {
     try {
       setErrorMessage(null);
       setLoadingProvider(provider);
 
+      const params = new URLSearchParams(window.location.search);
+      const next = params.get("next");
+      const callbackUrl = new URL("/auth/callback", window.location.origin);
+      if (next && next.startsWith("/")) {
+        callbackUrl.searchParams.set("next", next);
+      }
+
       const supabase = createSupabaseBrowserClient();
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: callbackUrl.toString(),
         },
       });
 

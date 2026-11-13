@@ -13,9 +13,13 @@ interface NavbarUserMenuProps {
   profileAriaLabel: string;
   signInLabel: string;
   signOutLabel: string;
+  adminDashboardLabel?: string;
 }
 
-function mapSupabaseUser(user: User): AuthUserProfile {
+function mapSupabaseUser(
+  user: User,
+  previousUser: AuthUserProfile | null
+): AuthUserProfile {
   const meta = user.user_metadata;
   let avatarUrl: string | null = null;
 
@@ -69,12 +73,16 @@ function mapSupabaseUser(user: User): AuthUserProfile {
       ? user.app_metadata.provider
       : user.identities?.[0]?.provider ?? null;
 
+  const sameUser = previousUser && previousUser.id === user.id;
+
   return {
     id: user.id,
     email: user.email ?? null,
-    name,
-    avatarUrl,
+    name: sameUser ? previousUser.name : name,
+    avatarUrl: sameUser && previousUser.avatarUrl ? previousUser.avatarUrl : avatarUrl,
     provider,
+    role: sameUser ? previousUser.role : "viewer",
+    status: sameUser ? previousUser.status : "active",
   };
 }
 
@@ -83,14 +91,15 @@ export function NavbarUserMenu({
   profileAriaLabel,
   signInLabel,
   signOutLabel,
+  adminDashboardLabel = "Admin Dashboard",
 }: NavbarUserMenuProps) {
-  const [user, setUser] = useState<AuthUserProfile | null>(initialUser);
+  const [authOverride, setAuthOverride] = useState<{
+    hasChanged: boolean;
+    user: AuthUserProfile | null;
+  }>({ hasChanged: false, user: null });
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setUser(initialUser);
-  }, [initialUser]);
+  const user = authOverride.hasChanged ? authOverride.user : initialUser;
 
   useEffect(() => {
     let isMounted = true;
@@ -100,7 +109,13 @@ export function NavbarUserMenu({
         data: { subscription },
       } = supabase.auth.onAuthStateChange((_event, session) => {
         if (!isMounted) return;
-        setUser(session?.user ? mapSupabaseUser(session.user) : null);
+        setAuthOverride((prev) => {
+          const baseUser = prev.hasChanged ? prev.user : initialUser;
+          return {
+            hasChanged: true,
+            user: session?.user ? mapSupabaseUser(session.user, baseUser) : null,
+          };
+        });
       });
 
       return () => {
@@ -112,7 +127,7 @@ export function NavbarUserMenu({
         isMounted = false;
       };
     }
-  }, []);
+  }, [initialUser]);
 
   useEffect(() => {
     if (!open) return;
@@ -169,17 +184,38 @@ export function NavbarUserMenu({
       </button>
 
       {open && (
-        <div className="absolute right-0 top-12 w-60 rounded-2xl bg-white shadow-soft-hover border border-nordic-dark/10 p-1.5 z-50 overflow-hidden">
+        <div className="absolute right-0 top-12 w-64 rounded-2xl bg-white shadow-soft-hover border border-nordic-dark/10 p-1.5 z-50 overflow-hidden">
           <div className="px-3 py-2.5 border-b border-nordic-dark/10 mb-1">
-            <p className="text-sm font-semibold text-nordic-dark truncate">
-              {user.name}
-            </p>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm font-semibold text-nordic-dark truncate">
+                {user.name}
+              </p>
+              {user.role === "admin" && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-nordic-dark text-white shrink-0">
+                  Admin
+                </span>
+              )}
+            </div>
             {user.email && (
               <p className="text-xs text-nordic-muted truncate mt-0.5">
                 {user.email}
               </p>
             )}
           </div>
+
+          {user.role === "admin" && (
+            <Link
+              href="/admin/properties"
+              onClick={() => setOpen(false)}
+              className="w-full px-3 py-2 rounded-xl text-left text-sm font-medium text-nordic-dark hover:bg-hint-of-green/60 hover:text-mosque transition-colors flex items-center gap-2.5 mb-0.5"
+            >
+              <span className="material-icons text-base text-mosque">
+                admin_panel_settings
+              </span>
+              <span>{adminDashboardLabel}</span>
+            </Link>
+          )}
+
           <form action={signOutAction}>
             <button
               type="submit"
@@ -194,4 +230,3 @@ export function NavbarUserMenu({
     </div>
   );
 }
-
