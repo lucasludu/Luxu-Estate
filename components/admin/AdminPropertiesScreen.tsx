@@ -11,6 +11,7 @@ import { getAdminPropertiesDashboard } from "@/lib/admin";
 import { requireAdminUser } from "@/lib/auth";
 import { parseHomeQuery } from "@/lib/home-query";
 import { PAGE_SIZE, type MarketFilter } from "@/lib/properties";
+import { PropertyRowActions } from "./PropertyRowActions";
 
 type RawSearchParams = Record<string, string | string[] | undefined>;
 
@@ -398,15 +399,47 @@ export async function AdminPropertiesScreen({
                 </div>
 
                 {/* Actions */}
-                <div className="col-span-12 md:col-span-2 flex items-center justify-end gap-2">
-                  <Link
-                    href={`/properties/${property.slug}`}
-                    title={dict.admin.properties.viewProperty}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-nordic-dark border border-nordic-dark/15 hover:border-mosque hover:text-mosque hover:bg-hint-of-green/30 transition-all"
-                  >
-                    <span className="material-icons text-base">visibility</span>
-                    <span>{dict.admin.properties.viewProperty}</span>
-                  </Link>
+                <div className="col-span-12 md:col-span-2 flex items-center justify-end">
+                  <PropertyRowActions
+                    property={property}
+                    labels={{
+                      viewProperty: dict.admin.properties.viewProperty,
+                      editProperty: dict.admin.properties.editProperty,
+                      deleteProperty: dict.admin.properties.deleteProperty,
+                      confirmDeleteTitle: dict.admin.properties.confirmDeleteTitle,
+                      confirmDeleteDescription:
+                        dict.admin.properties.confirmDeleteDescription,
+                      cancel: dict.admin.properties.cancel,
+                      confirmDelete: dict.admin.properties.confirmDelete,
+                      saveChanges: dict.admin.properties.saveChanges,
+                      saving: dict.admin.properties.saving,
+                      deleting: dict.admin.properties.deleting,
+                      propertyUpdatedSuccess:
+                        dict.admin.properties.propertyUpdatedSuccess,
+                      propertyDeletedSuccess:
+                        dict.admin.properties.propertyDeletedSuccess,
+                      editModalTitle: dict.admin.properties.editModalTitle,
+                      fieldTitle: dict.admin.properties.fieldTitle,
+                      fieldLocation: dict.admin.properties.fieldLocation,
+                      fieldPrice: dict.admin.properties.fieldPrice,
+                      fieldCategory: dict.admin.properties.fieldCategory,
+                      fieldListingType: dict.admin.properties.fieldListingType,
+                      fieldBeds: dict.admin.properties.fieldBeds,
+                      fieldBaths: dict.admin.properties.fieldBaths,
+                      fieldArea: dict.admin.properties.fieldArea,
+                      fieldGarage: dict.admin.properties.fieldGarage,
+                      fieldBadge: dict.admin.properties.fieldBadge,
+                      fieldFeatured: dict.admin.properties.fieldFeatured,
+                      statusActiveSale: dict.admin.properties.statusActiveSale,
+                      statusActiveRent: dict.admin.properties.statusActiveRent,
+                    }}
+                    categoryLabels={{
+                      House: dict.categories.House,
+                      Apartment: dict.categories.Apartment,
+                      Villa: dict.categories.Villa,
+                      Penthouse: dict.categories.Penthouse,
+                    }}
+                  />
                 </div>
               </div>
             );

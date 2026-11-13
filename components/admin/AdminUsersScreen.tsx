@@ -260,7 +260,7 @@ export async function AdminUsersScreen({
       <div className="hidden md:grid grid-cols-12 gap-4 px-6 text-xs font-semibold uppercase tracking-wider text-nordic-dark/50 mb-3">
         <div className="col-span-4">{dict.admin.users.colUserDetails}</div>
         <div className="col-span-3">{dict.admin.users.colRoleStatus}</div>
-        <div className="col-span-3">{dict.admin.users.colAccessInfo}</div>
+        <div className="col-span-3">{dict.admin.users.colPerformance}</div>
         <div className="col-span-2 text-right">{dict.admin.users.colActions}</div>
       </div>
 
@@ -331,8 +331,13 @@ export async function AdminUsersScreen({
                     <div className="text-xs text-nordic-dark/70 truncate">
                       {userItem.email}
                     </div>
-                    <div className="mt-1 text-[10px] px-2 py-0.5 inline-block bg-white/70 rounded text-nordic-dark/60 font-mono">
-                      ID: {userItem.shortId}
+                    <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+                      <span className="text-[10px] px-2 py-0.5 inline-block bg-white/70 rounded text-nordic-dark/60 font-mono">
+                        ID: {userItem.shortId}
+                      </span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-nordic-dark/5 text-nordic-muted uppercase font-medium">
+                        {userItem.provider}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -352,29 +357,32 @@ export async function AdminUsersScreen({
                   </div>
                 </div>
 
-                {/* Access & Activity */}
+                {/* Performance */}
                 <div className="col-span-12 md:col-span-3 w-full grid grid-cols-2 gap-4">
                   <div>
                     <div className="text-[10px] uppercase tracking-wider text-nordic-dark/50">
-                      {dict.admin.users.accessLevelLabel}
+                      {dict.admin.users.propertiesCount}
                     </div>
                     <div className="text-sm font-semibold text-nordic-dark">
-                      {formatMessage(dict.admin.users.accessLevelValue, {
-                        level: userItem.accessLevel,
-                      })}
+                      {userItem.performance.propertiesCount}
                     </div>
                   </div>
                   <div>
                     <div className="text-[10px] uppercase tracking-wider text-nordic-dark/50">
-                      {dict.admin.users.lastLoginLabel}
+                      {userItem.performance.metricType === "sales"
+                        ? dict.admin.users.salesYtd
+                        : userItem.performance.metricType === "access"
+                        ? dict.admin.users.accessLevelLabel
+                        : dict.admin.users.lastLoginLabel}
                     </div>
-                    <div className="text-sm font-semibold text-nordic-dark flex items-center gap-1.5">
-                      <span>
-                        {formatDateDisplay(userItem.lastSignInAt, locale)}
-                      </span>
-                      <span className="text-[10px] font-medium uppercase px-1.5 py-0.5 rounded bg-nordic-dark/5 text-nordic-muted">
-                        {userItem.provider}
-                      </span>
+                    <div className="text-sm font-semibold text-nordic-dark">
+                      {userItem.performance.metricType === "sales"
+                        ? userItem.performance.salesYtdFormatted
+                        : userItem.performance.metricType === "access"
+                        ? formatMessage(dict.admin.users.accessLevelValue, {
+                            level: userItem.accessLevel,
+                          })
+                        : formatDateDisplay(userItem.lastSignInAt, locale)}
                     </div>
                   </div>
                 </div>
