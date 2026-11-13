@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useTransition, type FormEvent } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import {
   updatePropertyAction,
   deletePropertyAction,
   type UpdatePropertyInput,
 } from "@/app/actions/admin";
-import type { Property, PropertyCategory } from "@/data/properties";
+import type { Property, PropertyCategory, PropertyImage } from "@/data/properties";
 
 export interface PropertyRowActionsLabels {
   viewProperty: string;
@@ -68,6 +69,8 @@ export function PropertyRowActions({
   const [garage, setGarage] = useState(String(property.garage ?? 2));
   const [badge, setBadge] = useState(property.badge ?? "");
   const [featured, setFeatured] = useState(Boolean(property.featured));
+  const [images, setImages] = useState<PropertyImage[]>(property.images ?? []);
+  const [newImageUrl, setNewImageUrl] = useState("");
 
   const handleEditSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -86,6 +89,7 @@ export function PropertyRowActions({
       garage: Number(garage),
       badge: badge.trim() || null,
       featured,
+      images,
     };
 
     startTransition(async () => {
@@ -362,6 +366,73 @@ export function PropertyRowActions({
                       {labels.fieldFeatured}
                     </span>
                   </label>
+                </div>
+              </div>
+
+              {/* Images Section */}
+              <div className="pt-3 border-t border-nordic-dark/10">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-xs font-semibold text-nordic-dark">
+                    Galería de Fotos ({images.length})
+                  </label>
+                </div>
+
+                <div className="flex gap-2 mb-3">
+                  <input
+                    type="url"
+                    value={newImageUrl}
+                    onChange={(e) => setNewImageUrl(e.target.value)}
+                    placeholder="https://images.unsplash.com/photo-..."
+                    className="flex-1 px-3 py-1.5 rounded-lg border border-nordic-dark/15 text-xs text-nordic-dark focus:outline-none focus:ring-2 focus:ring-mosque"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!newImageUrl.trim()) return;
+                      setImages((prev) => [
+                        ...prev,
+                        { url: newImageUrl.trim(), alt: title || "Property image" },
+                      ]);
+                      setNewImageUrl("");
+                    }}
+                    className="px-3 py-1.5 bg-nordic-dark hover:bg-mosque text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer inline-flex items-center gap-1"
+                  >
+                    <span className="material-icons text-sm">add</span>
+                    <span>Añadir</span>
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-36 overflow-y-auto pr-1">
+                  {images.map((img, idx) => (
+                    <div
+                      key={idx}
+                      className="group relative rounded-md overflow-hidden border border-gray-200 aspect-video bg-gray-100"
+                    >
+                      <Image
+                        src={img.url}
+                        alt={img.alt || "Photo"}
+                        fill
+                        sizes="(max-width: 768px) 33vw, 25vw"
+                        className="object-cover"
+                        unoptimized
+                      />
+                      {idx === 0 && (
+                        <span className="absolute top-1 left-1 bg-mosque text-white text-[9px] font-bold px-1.5 py-0.2 rounded shadow-xs">
+                          Portada
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setImages((prev) => prev.filter((_, i) => i !== idx))
+                        }
+                        className="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-600 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                        title="Eliminar"
+                      >
+                        <span className="material-icons text-[11px]">delete</span>
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </div>
 

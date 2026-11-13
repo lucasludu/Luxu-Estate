@@ -13,6 +13,7 @@ import {
   type UserStatus,
 } from "@/lib/auth";
 import { UserRoleDropdown } from "./UserRoleDropdown";
+import { AddUserButton } from "./AddUserButton";
 
 type RawSearchParams = Record<string, string | string[] | undefined>;
 
@@ -184,7 +185,7 @@ export async function AdminUsersScreen({
     <div>
       {/* Header */}
       <header className="w-full pb-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-nordic-dark">
               {dict.admin.users.title}
@@ -194,36 +195,53 @@ export async function AdminUsersScreen({
             </p>
           </div>
 
-          <form
-            action="/admin/users"
-            method="GET"
-            className="flex flex-col sm:flex-row gap-3 w-full md:w-auto"
-          >
-            {filters.role !== "all" && (
-              <input type="hidden" name="role" value={filters.role} />
-            )}
-            <div className="relative group w-full md:w-80">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <span className="material-icons text-nordic-dark/40 group-focus-within:text-mosque text-xl">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <form
+              action="/admin/users"
+              method="GET"
+              className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3"
+            >
+              {filters.role !== "all" && (
+                <input type="hidden" name="role" value={filters.role} />
+              )}
+              <div className="relative w-full sm:w-72">
+                <span className="material-icons text-nordic-dark/40 absolute left-3 top-1/2 -translate-y-1/2 text-lg pointer-events-none">
                   search
                 </span>
+                <input
+                  type="search"
+                  name="q"
+                  defaultValue={filters.q}
+                  placeholder={dict.admin.users.searchPlaceholder}
+                  className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-white border border-nordic-dark/15 text-sm text-nordic-dark placeholder:text-nordic-dark/40 focus:outline-none focus:ring-2 focus:ring-mosque shadow-xs"
+                />
               </div>
-              <input
-                type="search"
-                name="q"
-                defaultValue={filters.q}
-                placeholder={dict.admin.users.searchPlaceholder}
-                className="block w-full pl-10 pr-4 py-2.5 border border-nordic-dark/10 rounded-lg bg-white text-nordic-dark shadow-soft placeholder:text-nordic-dark/35 focus:outline-none focus:ring-2 focus:ring-mosque transition-all text-sm"
-              />
-            </div>
-            <button
-              type="submit"
-              className="inline-flex items-center justify-center px-4 py-2.5 border border-mosque text-sm font-medium rounded-lg text-mosque bg-white hover:bg-mosque hover:text-white transition-colors whitespace-nowrap cursor-pointer"
-            >
-              <span className="material-icons text-lg mr-1.5">search</span>
-              <span>{dict.hero.searchButton}</span>
-            </button>
-          </form>
+              <button
+                type="submit"
+                className="inline-flex items-center justify-center px-4 py-2.5 border border-nordic-dark/15 hover:border-mosque text-sm font-medium rounded-lg text-nordic-dark hover:text-mosque bg-white hover:bg-hint-of-green/20 shadow-xs transition-colors whitespace-nowrap cursor-pointer gap-1.5"
+              >
+                <span className="material-icons text-base">search</span>
+                <span>{dict.hero.searchButton}</span>
+              </button>
+            </form>
+
+            <AddUserButton
+              labels={{
+                buttonLabel: dict.admin.users.addUser,
+                modalTitle: dict.admin.users.createUserModalTitle,
+                fieldFullName: dict.admin.users.fieldFullName,
+                fieldEmail: dict.admin.users.fieldEmail,
+                fieldRole: dict.admin.users.fieldRole,
+                fieldStatus: dict.admin.users.fieldStatus,
+                cancel: dict.admin.properties.cancel,
+                saveChanges: dict.admin.properties.saveChanges,
+                creating: dict.admin.users.creating,
+                success: dict.admin.users.createUserSuccess,
+              }}
+              roleLabels={roleLabels}
+              statusLabels={statusLabels}
+            />
+          </div>
         </div>
 
         {/* Role Filter Tabs */}

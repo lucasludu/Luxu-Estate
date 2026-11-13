@@ -12,6 +12,7 @@ import { requireAdminUser } from "@/lib/auth";
 import { parseHomeQuery } from "@/lib/home-query";
 import { PAGE_SIZE, type MarketFilter } from "@/lib/properties";
 import { PropertyRowActions } from "./PropertyRowActions";
+import { AddPropertyButton } from "./AddPropertyButton";
 
 type RawSearchParams = Record<string, string | string[] | undefined>;
 
@@ -120,37 +121,86 @@ export async function AdminPropertiesScreen({
           </p>
         </div>
 
-        <form
-          action="/admin/properties"
-          method="GET"
-          className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3"
-        >
-          {query.category !== "All" && (
-            <input type="hidden" name="category" value={query.category} />
-          )}
-          {query.market !== "all" && (
-            <input type="hidden" name="type" value={query.market} />
-          )}
-          <div className="relative w-full sm:w-72">
-            <span className="material-icons text-nordic-dark/40 absolute left-3 top-1/2 -translate-y-1/2 text-lg pointer-events-none">
-              search
-            </span>
-            <input
-              type="search"
-              name="q"
-              defaultValue={query.q}
-              placeholder={dict.admin.properties.searchPlaceholder}
-              className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-white border border-nordic-dark/15 text-sm text-nordic-dark placeholder:text-nordic-dark/40 focus:outline-none focus:ring-2 focus:ring-mosque shadow-sm"
-            />
-          </div>
-          <button
-            type="submit"
-            className="bg-mosque hover:bg-primary-dark text-white px-5 py-2.5 rounded-lg text-sm font-medium shadow-sm transition-colors inline-flex items-center justify-center gap-2 cursor-pointer"
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <form
+            action="/admin/properties"
+            method="GET"
+            className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3"
           >
-            <span className="material-icons text-base">search</span>
-            <span>{dict.hero.searchButton}</span>
-          </button>
-        </form>
+            {query.category !== "All" && (
+              <input type="hidden" name="category" value={query.category} />
+            )}
+            {query.market !== "all" && (
+              <input type="hidden" name="type" value={query.market} />
+            )}
+            <div className="relative w-full sm:w-72">
+              <span className="material-icons text-nordic-dark/40 absolute left-3 top-1/2 -translate-y-1/2 text-lg pointer-events-none">
+                search
+              </span>
+              <input
+                type="search"
+                name="q"
+                defaultValue={query.q}
+                placeholder={dict.admin.properties.searchPlaceholder}
+                className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-white border border-nordic-dark/15 text-sm text-nordic-dark placeholder:text-nordic-dark/40 focus:outline-none focus:ring-2 focus:ring-mosque shadow-xs"
+              />
+            </div>
+            <button
+              type="submit"
+              className="inline-flex items-center justify-center px-4 py-2.5 border border-nordic-dark/15 hover:border-mosque text-sm font-medium rounded-lg text-nordic-dark hover:text-mosque bg-white hover:bg-hint-of-green/20 shadow-xs transition-colors whitespace-nowrap cursor-pointer gap-1.5"
+            >
+              <span className="material-icons text-base">search</span>
+              <span>{dict.hero.searchButton}</span>
+            </button>
+          </form>
+
+          <AddPropertyButton
+            labels={{
+              buttonLabel: dict.admin.properties.addProperty,
+              modalTitle: dict.admin.properties.createPropertyModalTitle,
+              fieldTitle: dict.admin.properties.fieldTitle,
+              fieldLocation: dict.admin.properties.fieldLocation,
+              fieldPrice: dict.admin.properties.fieldPrice,
+              fieldCategory: dict.admin.properties.fieldCategory,
+              fieldListingType: dict.admin.properties.fieldListingType,
+              fieldBeds: dict.admin.properties.fieldBeds,
+              fieldBaths: dict.admin.properties.fieldBaths,
+              fieldArea: dict.admin.properties.fieldArea,
+              fieldGarage: dict.admin.properties.fieldGarage,
+              fieldBadge: dict.admin.properties.fieldBadge,
+              fieldFeatured: dict.admin.properties.fieldFeatured,
+              statusActiveSale: dict.admin.properties.statusActiveSale,
+              statusActiveRent: dict.admin.properties.statusActiveRent,
+              cancel: dict.admin.properties.cancel,
+              saveChanges: dict.admin.properties.saveChanges,
+              creating: dict.admin.properties.creating,
+              success: dict.admin.properties.createPropertySuccess,
+              stepBasic: dict.admin.properties.stepBasic,
+              stepFeatures: dict.admin.properties.stepFeatures,
+              stepImages: dict.admin.properties.stepImages,
+              stepIndicator: dict.admin.properties.stepIndicator,
+              nextStep: dict.admin.properties.nextStep,
+              prevStep: dict.admin.properties.prevStep,
+              addImage: dict.admin.properties.addImage,
+              imageUrlLabel: dict.admin.properties.imageUrlLabel,
+              imageAltLabel: dict.admin.properties.imageAltLabel,
+              coverPhoto: dict.admin.properties.coverPhoto,
+              setAsCover: dict.admin.properties.setAsCover,
+              removeImage: dict.admin.properties.removeImage,
+              usePresetImages: dict.admin.properties.usePresetImages,
+              noImagesAdded: dict.admin.properties.noImagesAdded,
+              imagesCount: dict.admin.properties.imagesCount,
+              fieldAmenities: dict.admin.properties.fieldAmenities,
+            }}
+            categoryLabels={{
+              House: dict.categories.House,
+              Apartment: dict.categories.Apartment,
+              Villa: dict.categories.Villa,
+              Penthouse: dict.categories.Penthouse,
+            }}
+            amenityLabels={dict.amenities}
+          />
+        </div>
       </div>
 
       {/* KPI Stats Overview */}
