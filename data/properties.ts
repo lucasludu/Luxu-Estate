@@ -31,6 +31,7 @@ export interface Property {
   area: string;
   areaValue: number;
   garage: number;
+  yearBuilt?: number;
   images: PropertyImage[];
   category: Exclude<PropertyCategory, "All">;
   listingType: ListingType;

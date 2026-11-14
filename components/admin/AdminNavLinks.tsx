@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -9,16 +10,16 @@ interface AdminNavLinksProps {
   backToSiteLabel: string;
 }
 
-export function AdminNavLinks({
+function AdminNavLinksView({
   propertiesLabel,
   usersLabel,
   backToSiteLabel,
-}: AdminNavLinksProps) {
-  const pathname = usePathname();
-  const isProperties =
-    pathname.startsWith("/admin/properties") || pathname === "/admin";
-  const isUsers = pathname.startsWith("/admin/users");
-
+  isProperties,
+  isUsers,
+}: AdminNavLinksProps & {
+  isProperties: boolean;
+  isUsers: boolean;
+}) {
   return (
     <div className="flex items-center gap-1.5 sm:gap-2">
       <Link
@@ -56,5 +57,32 @@ export function AdminNavLinks({
         <span>{backToSiteLabel}</span>
       </Link>
     </div>
+  );
+}
+
+function AdminNavLinksActive(props: AdminNavLinksProps) {
+  const pathname = usePathname();
+  const isProperties =
+    pathname.startsWith("/admin/properties") || pathname === "/admin";
+  const isUsers = pathname.startsWith("/admin/users");
+
+  return (
+    <AdminNavLinksView
+      {...props}
+      isProperties={isProperties}
+      isUsers={isUsers}
+    />
+  );
+}
+
+export function AdminNavLinks(props: AdminNavLinksProps) {
+  return (
+    <Suspense
+      fallback={
+        <AdminNavLinksView {...props} isProperties={false} isUsers={false} />
+      }
+    >
+      <AdminNavLinksActive {...props} />
+    </Suspense>
   );
 }

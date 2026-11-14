@@ -48,6 +48,7 @@ interface PropertyRow {
   baths: number | string;
   area_m2: number;
   garage?: number | null;
+  year_built?: number | null;
   images: PropertyImage[];
   category: Exclude<PropertyCategory, "All">;
   listing_type: ListingType;
@@ -144,6 +145,7 @@ function toProperty(row: PropertyRow): Property {
     area: `${areaFormatter.format(row.area_m2)} m²`,
     areaValue: row.area_m2,
     garage: row.garage ?? 2,
+    yearBuilt: typeof row.year_built === "number" ? row.year_built : 2024,
     images,
     category: row.category,
     listingType: row.listing_type,
@@ -355,6 +357,25 @@ async function fetchPropertyBySlugCached(slug: string): Promise<Property | null>
 export const getPropertyBySlug = cache(async (slug: string): Promise<Property | null> => {
   return fetchPropertyBySlugCached(slug);
 });
+
+export async function getPropertyById(idOrSlug: string): Promise<Property | null> {
+  const supabase = createSupabaseServerClient();
+  const isUuid =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      idOrSlug
+    );
+
+  const query = supabase.from("properties").select("*");
+  const { data, error } = isUuid
+    ? await query.eq("id", idOrSlug).maybeSingle()
+    : await query.eq("slug", idOrSlug).maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to load property "${idOrSlug}": ${error.message}`);
+  }
+  if (!data) return null;
+  return toProperty(data as PropertyRow);
+}
 
 export async function getAllPropertySlugs(): Promise<{ slug: string }[]> {
   "use cache";
