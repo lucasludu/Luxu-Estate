@@ -38,6 +38,7 @@ export interface Property {
   statusLabel?: "FOR SALE" | "FOR RENT";
   badge?: string;
   featured?: boolean;
+  isActive?: boolean;
   hasBottomGradient?: boolean;
   visibilityClass?: string;
   description: string[];

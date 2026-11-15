@@ -117,6 +117,7 @@ export async function PropertyFormScreen({
       : "Property Type",
     fieldBadge: dict.admin.properties.fieldBadge,
     fieldFeatured: dict.admin.properties.fieldFeatured,
+    fieldIsActive: dict.admin.properties.fieldIsActive,
     statusActiveSale: dict.admin.properties.statusActiveSale,
     statusActiveRent: dict.admin.properties.statusActiveRent,
     descriptionTitle: isEs

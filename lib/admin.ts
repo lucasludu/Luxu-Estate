@@ -1,7 +1,7 @@
 import "server-only";
 import {
-  getFilterablePropertySummaries,
-  getMarketProperties,
+  getAdminPropertiesPage,
+  getAdminPropertySummaries,
   type MarketFilter,
   type PropertyFilters,
 } from "@/lib/properties";
@@ -44,8 +44,8 @@ export async function getAdminPropertiesDashboard(
   };
 
   const [summaries, marketPage] = await Promise.all([
-    getFilterablePropertySummaries(),
-    getMarketProperties(propertyFilters, page),
+    getAdminPropertySummaries(),
+    getAdminPropertiesPage(propertyFilters, page),
   ]);
 
   let activeSaleCount = 0;
@@ -53,6 +53,7 @@ export async function getAdminPropertiesDashboard(
   let featuredCount = 0;
 
   for (const item of summaries) {
+    if (!item.isActive) continue;
     if (item.listingType === "sale") activeSaleCount += 1;
     if (item.listingType === "rent") activeRentCount += 1;
     if (item.featured) featuredCount += 1;

@@ -352,18 +352,27 @@ export async function AdminPropertiesScreen({
               alt: property.title,
             };
             const isRent = property.listingType === "rent";
+            const isActive = property.isActive !== false;
             const badgeText = translateBadge(dict, property.badge);
 
             return (
               <div
                 key={property.id}
-                className="group grid grid-cols-1 md:grid-cols-12 gap-4 px-6 py-5 border-b border-gray-100 last:border-b-0 hover:bg-background-light/60 transition-colors items-center"
+                className={`group grid grid-cols-1 md:grid-cols-12 gap-4 px-6 py-5 border-b border-gray-100 last:border-b-0 hover:bg-background-light/60 transition-colors items-center ${
+                  !isActive ? "bg-gray-50/60" : ""
+                }`}
               >
                 {/* Property Details */}
                 <div className="col-span-12 md:col-span-6 flex gap-4 items-center">
                   <Link
-                    href={`/properties/${property.slug}`}
-                    className="relative h-20 w-28 flex-shrink-0 rounded-lg overflow-hidden bg-gray-200 block"
+                    href={
+                      isActive
+                        ? `/properties/${property.slug}`
+                        : `/admin/properties/${property.id}/edit`
+                    }
+                    className={`relative h-20 w-28 flex-shrink-0 rounded-lg overflow-hidden bg-gray-200 block ${
+                      !isActive ? "opacity-65 grayscale-[30%]" : ""
+                    }`}
                   >
                     <Image
                       src={coverImage.url}
@@ -376,8 +385,14 @@ export async function AdminPropertiesScreen({
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <Link
-                        href={`/properties/${property.slug}`}
-                        className="text-base sm:text-lg font-bold text-nordic-dark group-hover:text-mosque transition-colors truncate"
+                        href={
+                          isActive
+                            ? `/properties/${property.slug}`
+                            : `/admin/properties/${property.id}/edit`
+                        }
+                        className={`text-base sm:text-lg font-bold group-hover:text-mosque transition-colors truncate ${
+                          isActive ? "text-nordic-dark" : "text-nordic-dark/65"
+                        }`}
                       >
                         {property.title}
                       </Link>
@@ -449,18 +464,25 @@ export async function AdminPropertiesScreen({
 
                 {/* Status */}
                 <div className="col-span-6 md:col-span-2 flex flex-wrap items-center gap-1.5">
-                  <span
-                    className={
-                      isRent
-                        ? "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-mosque/10 text-mosque border border-mosque/15"
-                        : "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-hint-of-green text-mosque border border-mosque/15"
-                    }
-                  >
-                    <span className="w-1.5 h-1.5 rounded-full bg-mosque mr-1.5" />
-                    {isRent
-                      ? dict.admin.properties.statusActiveRent
-                      : dict.admin.properties.statusActiveSale}
-                  </span>
+                  {isActive ? (
+                    <span
+                      className={
+                        isRent
+                          ? "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-mosque/10 text-mosque border border-mosque/15"
+                          : "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-hint-of-green text-mosque border border-mosque/15"
+                      }
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-mosque mr-1.5" />
+                      {isRent
+                        ? dict.admin.properties.statusActiveRent
+                        : dict.admin.properties.statusActiveSale}
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
+                      <span className="w-1.5 h-1.5 rounded-full bg-gray-400 mr-1.5" />
+                      {dict.admin.properties.statusDeactivated}
+                    </span>
+                  )}
                 </div>
 
                 {/* Actions */}
@@ -471,18 +493,27 @@ export async function AdminPropertiesScreen({
                       viewProperty: dict.admin.properties.viewProperty,
                       editProperty: dict.admin.properties.editProperty,
                       deleteProperty: dict.admin.properties.deleteProperty,
+                      activateProperty: dict.admin.properties.activateProperty,
                       confirmDeleteTitle: dict.admin.properties.confirmDeleteTitle,
                       confirmDeleteDescription:
                         dict.admin.properties.confirmDeleteDescription,
+                      confirmActivateTitle:
+                        dict.admin.properties.confirmActivateTitle,
+                      confirmActivateDescription:
+                        dict.admin.properties.confirmActivateDescription,
                       cancel: dict.admin.properties.cancel,
                       confirmDelete: dict.admin.properties.confirmDelete,
+                      confirmActivate: dict.admin.properties.confirmActivate,
                       saveChanges: dict.admin.properties.saveChanges,
                       saving: dict.admin.properties.saving,
                       deleting: dict.admin.properties.deleting,
+                      activating: dict.admin.properties.activating,
                       propertyUpdatedSuccess:
                         dict.admin.properties.propertyUpdatedSuccess,
                       propertyDeletedSuccess:
                         dict.admin.properties.propertyDeletedSuccess,
+                      propertyActivatedSuccess:
+                        dict.admin.properties.propertyActivatedSuccess,
                       editModalTitle: dict.admin.properties.editModalTitle,
                       fieldTitle: dict.admin.properties.fieldTitle,
                       fieldLocation: dict.admin.properties.fieldLocation,

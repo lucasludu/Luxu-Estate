@@ -34,6 +34,7 @@ export interface FilterablePropertySummary {
   category: Exclude<PropertyCategory, "All">;
   listingType: ListingType;
   featured: boolean;
+  isActive: boolean;
   amenities: string[];
 }
 
@@ -54,6 +55,7 @@ interface PropertyRow {
   listing_type: ListingType;
   badge: string | null;
   featured: boolean;
+  is_active?: boolean | null;
   description?: string[] | null;
   amenities?: string[] | null;
   latitude?: number | null;
@@ -152,6 +154,7 @@ function toProperty(row: PropertyRow): Property {
     statusLabel: isRent ? "FOR RENT" : "FOR SALE",
     badge: row.badge ?? undefined,
     featured: row.featured,
+    isActive: row.is_active !== false,
     hasBottomGradient: row.featured && row.badge === "Exclusive",
     description:
       Array.isArray(row.description) && row.description.length > 0
@@ -180,7 +183,7 @@ function sanitizeSearch(term: string) {
 }
 
 interface FilterBuilder {
-  eq(column: string, value: string): FilterBuilder;
+  eq(column: string, value: string | number | boolean): FilterBuilder;
   gte(column: string, value: number): FilterBuilder;
   lte(column: string, value: number): FilterBuilder;
   contains(column: string, value: readonly string[]): FilterBuilder;
@@ -190,9 +193,13 @@ interface FilterBuilder {
 function applyFilters<T>(
   query: T,
   filters: PropertyFilters,
-  includeMarket: boolean
+  includeMarket: boolean,
+  onlyActive = true
 ): T {
   let result = query as unknown as FilterBuilder;
+  if (onlyActive) {
+    result = result.eq("is_active", true);
+  }
   if (filters.category !== "All") {
     result = result.eq("category", filters.category);
   }
@@ -224,7 +231,7 @@ function applyFilters<T>(
   return result as unknown as T;
 }
 
-const PROPERTIES_CACHE_TAG = "properties-v4";
+const PROPERTIES_CACHE_TAG = "properties-v5";
 
 export async function getFilterablePropertySummaries(): Promise<
   FilterablePropertySummary[]
@@ -237,8 +244,9 @@ export async function getFilterablePropertySummaries(): Promise<
   const { data, error } = await supabase
     .from("properties")
     .select(
-      "id, title, location, price, beds, baths, category, listing_type, featured, amenities"
-    );
+      "id, title, location, price, beds, baths, category, listing_type, featured, is_active, amenities"
+    )
+    .eq("is_active", true);
 
   if (error) {
     throw new Error(`Failed to load property summaries: ${error.message}`);
@@ -254,6 +262,42 @@ export async function getFilterablePropertySummaries(): Promise<
     category: row.category as Exclude<PropertyCategory, "All">,
     listingType: row.listing_type as ListingType,
     featured: Boolean(row.featured),
+    isActive: row.is_active !== false,
+    amenities: Array.isArray(row.amenities)
+      ? (row.amenities as string[])
+      : DEFAULT_AMENITIES,
+  }));
+}
+
+export async function getAdminPropertySummaries(): Promise<
+  FilterablePropertySummary[]
+> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("properties", PROPERTIES_CACHE_TAG);
+
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("properties")
+    .select(
+      "id, title, location, price, beds, baths, category, listing_type, featured, is_active, amenities"
+    );
+
+  if (error) {
+    throw new Error(`Failed to load admin property summaries: ${error.message}`);
+  }
+
+  return (data ?? []).map((row) => ({
+    id: String(row.id),
+    title: String(row.title),
+    location: String(row.location),
+    price: Number(row.price),
+    beds: Number(row.beds),
+    baths: Number(row.baths),
+    category: row.category as Exclude<PropertyCategory, "All">,
+    listingType: row.listing_type as ListingType,
+    featured: Boolean(row.featured),
+    isActive: row.is_active !== false,
     amenities: Array.isArray(row.amenities)
       ? (row.amenities as string[])
       : DEFAULT_AMENITIES,
@@ -269,6 +313,7 @@ export async function getFeaturedProperties(): Promise<Property[]> {
   const { data, error } = await supabase
     .from("properties")
     .select("*")
+    .eq("is_active", true)
     .eq("featured", true)
     .order("created_at", { ascending: false })
     .order("id")
@@ -298,6 +343,7 @@ export async function getMarketProperties(
   const query = applyFilters(
     supabase.from("properties").select("*", { count: "exact" }),
     filters,
+    true,
     true
   )
     .order("created_at", { ascending: false })
@@ -312,6 +358,7 @@ export async function getMarketProperties(
     const { count: total, error: countError } = await applyFilters(
       supabase.from("properties").select("*", { count: "exact" }),
       filters,
+      true,
       true
     ).range(0, 0);
     if (countError) {
@@ -335,6 +382,56 @@ export async function getMarketProperties(
   };
 }
 
+export async function getAdminPropertiesPage(
+  filters: PropertyFilters,
+  page: number
+): Promise<MarketPage> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("properties", PROPERTIES_CACHE_TAG);
+
+  const from = (page - 1) * PAGE_SIZE;
+  const supabase = createSupabaseServerClient();
+  const query = applyFilters(
+    supabase.from("properties").select("*", { count: "exact" }),
+    filters,
+    true,
+    false
+  )
+    .order("created_at", { ascending: false })
+    .order("id")
+    .range(from, from + PAGE_SIZE - 1);
+
+  const { data, count, error } = await query;
+
+  if (error?.code === "PGRST103") {
+    const { count: total, error: countError } = await applyFilters(
+      supabase.from("properties").select("*", { count: "exact" }),
+      filters,
+      true,
+      false
+    ).range(0, 0);
+    if (countError) {
+      throw new Error(`Failed to load admin properties: ${countError.message}`);
+    }
+    return {
+      items: [],
+      total: total ?? 0,
+      totalPages: Math.max(1, Math.ceil((total ?? 0) / PAGE_SIZE)),
+      page,
+    };
+  }
+  if (error) throw new Error(`Failed to load admin properties: ${error.message}`);
+
+  const total = count ?? 0;
+  return {
+    items: (data as PropertyRow[]).map(toProperty),
+    total,
+    totalPages: Math.max(1, Math.ceil(total / PAGE_SIZE)),
+    page,
+  };
+}
+
 async function fetchPropertyBySlugCached(slug: string): Promise<Property | null> {
   "use cache";
   cacheLife("hours");
@@ -345,6 +442,7 @@ async function fetchPropertyBySlugCached(slug: string): Promise<Property | null>
     .from("properties")
     .select("*")
     .eq("slug", slug)
+    .eq("is_active", true)
     .maybeSingle();
 
   if (error) {
@@ -386,6 +484,7 @@ export async function getAllPropertySlugs(): Promise<{ slug: string }[]> {
   const { data, error } = await supabase
     .from("properties")
     .select("slug")
+    .eq("is_active", true)
     .order("created_at", { ascending: false });
 
   if (error) {

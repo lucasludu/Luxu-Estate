@@ -73,6 +73,7 @@ function invalidatePropertiesCache(slug?: string, propertyId?: string) {
   try {
     updateTag("properties");
     updateTag("properties-v4");
+    updateTag("properties-v5");
     if (slug) {
       updateTag(`property-${slug}`);
     }
@@ -249,6 +250,7 @@ export interface CreatePropertyInput {
   listingType: "sale" | "rent";
   badge?: string | null;
   featured?: boolean;
+  isActive?: boolean;
   description?: string[];
   images?: PropertyImage[];
   amenities?: string[];
@@ -329,6 +331,7 @@ export async function createPropertyAction(
     listing_type: input.listingType,
     badge: input.badge && input.badge.trim() ? input.badge.trim() : null,
     featured: Boolean(input.featured),
+    is_active: input.isActive !== false,
     images: imagesToInsert,
     image_alt: imagesToInsert[0]?.alt || cleanTitle,
     description: descriptionToInsert,
@@ -384,6 +387,7 @@ export interface UpdatePropertyInput {
   listingType: "sale" | "rent";
   badge?: string | null;
   featured?: boolean;
+  isActive?: boolean;
   description?: string[];
   images?: PropertyImage[];
   amenities?: string[];
@@ -426,6 +430,10 @@ export async function updatePropertyAction(
 
   if (typeof input.yearBuilt === "number" && Number.isFinite(input.yearBuilt)) {
     updateData.year_built = Math.max(1800, Math.floor(input.yearBuilt));
+  }
+
+  if (typeof input.isActive === "boolean") {
+    updateData.is_active = input.isActive;
   }
 
   if (input.images && input.images.length > 0) {
@@ -486,8 +494,9 @@ export async function updatePropertyAction(
   return { ok: true, id: propertyId, slug };
 }
 
-export async function deletePropertyAction(
-  propertyId: string
+export async function togglePropertyActiveAction(
+  propertyId: string,
+  isActive: boolean
 ): Promise<AdminMutationResult> {
   const { supabase, error: authErr } = await getAuthenticatedAdminClient();
   if (!supabase || authErr) {
@@ -498,9 +507,9 @@ export async function deletePropertyAction(
     return { ok: false, error: "invalid_input" };
   }
 
-  const { data: deletedRow, error } = await supabase
+  const { data: updatedRow, error } = await supabase
     .from("properties")
-    .delete()
+    .update({ is_active: Boolean(isActive) })
     .eq("id", propertyId)
     .select("id, slug")
     .maybeSingle();
@@ -509,17 +518,24 @@ export async function deletePropertyAction(
     return { ok: false, error: error.message };
   }
 
-  if (!deletedRow) {
+  if (!updatedRow) {
     return {
       ok: false,
-      error: "No se pudo eliminar la propiedad (verifica permisos RLS).",
+      error: "No se pudo actualizar el estado de la propiedad (verifica permisos RLS).",
     };
   }
 
-  const slug = deletedRow.slug ? String(deletedRow.slug) : undefined;
+  const slug = updatedRow.slug ? String(updatedRow.slug) : undefined;
   invalidatePropertiesCache(slug, propertyId);
 
-  return { ok: true };
+  return { ok: true, id: propertyId, slug };
+}
+
+export async function deletePropertyAction(
+  propertyId: string
+): Promise<AdminMutationResult> {
+  // Never hard-delete properties from the DB; deactivate instead.
+  return togglePropertyActiveAction(propertyId, false);
 }
 
 export async function updateUserRoleAction(

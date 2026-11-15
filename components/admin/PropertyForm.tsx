@@ -120,6 +120,7 @@ export interface PropertyFormLabels {
   fieldCategory: string;
   fieldBadge: string;
   fieldFeatured: string;
+  fieldIsActive?: string;
   statusActiveSale: string;
   statusActiveRent: string;
   descriptionTitle: string;
@@ -197,6 +198,9 @@ export function PropertyForm({
   );
   const [badge, setBadge] = useState(initialProperty?.badge ?? "");
   const [featured, setFeatured] = useState(Boolean(initialProperty?.featured));
+  const [isActive, setIsActive] = useState(
+    initialProperty ? initialProperty.isActive !== false : true
+  );
 
   // Description
   const [descriptionText, setDescriptionText] = useState(
@@ -569,6 +573,7 @@ export function PropertyForm({
       listingType,
       badge: badge.trim() || null,
       featured,
+      isActive,
       description: paragraphs.length > 0 ? paragraphs : undefined,
       images: images.length > 0 ? images : DEFAULT_GALLERY_PREVIEW_IMAGES,
       amenities: selectedAmenities,
@@ -807,7 +812,7 @@ export function PropertyForm({
                 </div>
               </div>
 
-              {/* Additional database fields: Badge & Featured */}
+              {/* Additional database fields: Badge, Featured & Active */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
                 <div>
                   <label
@@ -825,7 +830,7 @@ export function PropertyForm({
                     onChange={(e) => setBadge(e.target.value)}
                   />
                 </div>
-                <div className="flex items-end pb-2">
+                <div className="flex flex-col justify-end gap-2.5 pb-1">
                   <label className="flex items-center gap-2.5 cursor-pointer group">
                     <input
                       className="w-4 h-4 text-mosque border-gray-300 rounded focus:ring-mosque"
@@ -835,6 +840,18 @@ export function PropertyForm({
                     />
                     <span className="text-sm font-medium text-nordic group-hover:text-mosque transition-colors">
                       {labels.fieldFeatured}
+                    </span>
+                  </label>
+                  <label className="flex items-center gap-2.5 cursor-pointer group">
+                    <input
+                      className="w-4 h-4 text-mosque border-gray-300 rounded focus:ring-mosque"
+                      type="checkbox"
+                      checked={isActive}
+                      onChange={(e) => setIsActive(e.target.checked)}
+                    />
+                    <span className="text-sm font-medium text-nordic group-hover:text-mosque transition-colors">
+                      {labels.fieldIsActive ??
+                        "Propiedad Activa (visible en búsqueda e inicio)"}
                     </span>
                   </label>
                 </div>
