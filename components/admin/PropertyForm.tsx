@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useEffect,
   useRef,
   useState,
   useTransition,
@@ -8,6 +9,7 @@ import {
   type DragEvent,
   type FormEvent,
 } from "react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -16,7 +18,10 @@ import {
   updatePropertyAction,
   uploadPropertyImageAction,
   deletePropertyImageFromBucketAction,
+  geocodeAddressAction,
+  reverseGeocodeAction,
   type CreatePropertyInput,
+  type GeocodeSuggestion,
   type UpdatePropertyInput,
 } from "@/app/actions/admin";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -25,6 +30,20 @@ import type {
   PropertyCategory,
   PropertyImage,
 } from "@/data/properties";
+
+const AdminLocationMapPicker = dynamic(
+  () => import("./AdminLocationMapPicker"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-full bg-slate-100 animate-pulse flex items-center justify-center">
+        <div className="w-8 h-8 bg-mosque/40 rounded-full border-4 border-white shadow-lg flex items-center justify-center">
+          <span className="material-icons text-white text-sm">place</span>
+        </div>
+      </div>
+    ),
+  }
+);
 
 const PROPERTY_IMAGES_BUCKET = "property-images";
 
@@ -39,8 +58,18 @@ const DEFAULT_GALLERY_PREVIEW_IMAGES: PropertyImage[] = [
   },
 ];
 
-const MAP_PREVIEW_IMAGE =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuAS55FY7gfArnlTpNsdabJk9nBO5uQJgOwIsl8beO34JRZ9dMmjLoIkTuTUO72Y9L5tUmQqTReQWebUWadAWwLusGmRQiIict5sqY--yRaOxuYpTzfR4vv4RKh1ex6oxY64e0kbSeMudNO6pv-gG0WzVWs-pDfvQm5IoTQ1mT-tAV49LDkXAHZl317M1-D7eZw3N8o2ExKWTgg6oMAXOFVnkApIqnb7TZHekwSw8pWQxpJV2EKI8EQKQbQXJaSbjN8gB1n8b-ueWj8";
+const COORDINATE_PRESETS: {
+  name: string;
+  lat: number;
+  lng: number;
+}[] = [
+  { name: "Mar del Plata", lat: -38.0055, lng: -57.5426 },
+  { name: "Buenos Aires", lat: -34.5889, lng: -58.4106 },
+  { name: "Miami", lat: 25.7617, lng: -80.1918 },
+  { name: "Beverly Hills", lat: 34.0736, lng: -118.4004 },
+  { name: "Manhattan", lat: 40.7831, lng: -73.9712 },
+  { name: "Marbella", lat: 36.5101, lng: -4.8824 },
+];
 
 const AMENITY_OPTIONS = [
   "Swimming Pool",
@@ -60,6 +89,15 @@ function extractBucketPath(url: string): string | null {
   if (idx === -1) return null;
   const raw = url.slice(idx + marker.length).split("?")[0];
   return raw ? decodeURIComponent(raw) : null;
+}
+
+function parseCoordinateInput(raw: string, fallback: number): number {
+  const normalized = String(raw ?? "")
+    .trim()
+    .replace(",", ".");
+  if (!normalized) return fallback;
+  const parsed = Number.parseFloat(normalized);
+  return Number.isFinite(parsed) ? parsed : fallback;
 }
 
 export interface PropertyFormLabels {
@@ -100,6 +138,10 @@ export interface PropertyFormLabels {
   locationTitle: string;
   fieldLocation: string;
   locationPlaceholder: string;
+  fieldLatitude: string;
+  fieldLongitude: string;
+  coordinatesSectionLabel: string;
+  coordinatesHint: string;
   mapPreviewLabel: string;
   detailsTitle: string;
   fieldArea: string;
@@ -163,7 +205,7 @@ export function PropertyForm({
       : ""
   );
 
-  // Location
+  // Location & Coordinates
   const [location, setLocation] = useState(initialProperty?.location ?? "");
   const [latitude, setLatitude] = useState(
     String(initialProperty?.coordinates?.lat ?? 37.4419)
@@ -171,6 +213,77 @@ export function PropertyForm({
   const [longitude, setLongitude] = useState(
     String(initialProperty?.coordinates?.lng ?? -122.143)
   );
+  const [isGeocoding, setIsGeocoding] = useState(false);
+  const [resolvedMapAddress, setResolvedMapAddress] = useState<string | null>(
+    initialProperty?.location ?? null
+  );
+  const [geocodeSuggestions, setGeocodeSuggestions] = useState<
+    GeocodeSuggestion[]
+  >([]);
+  const lastGeocodedQueryRef = useRef<string>(
+    (initialProperty?.location ?? "").trim()
+  );
+  const geocodeRequestIdRef = useRef(0);
+
+  const performGeocode = async (rawAddress: string, force = false) => {
+    const query = rawAddress.trim();
+    if (query.length < 4) {
+      setGeocodeSuggestions([]);
+      return;
+    }
+    if (!force && query === lastGeocodedQueryRef.current) {
+      return;
+    }
+
+    lastGeocodedQueryRef.current = query;
+    const requestId = ++geocodeRequestIdRef.current;
+    setIsGeocoding(true);
+
+    try {
+      const res = await geocodeAddressAction(query);
+      if (requestId !== geocodeRequestIdRef.current) return;
+
+      if (res.ok && typeof res.lat === "number" && typeof res.lng === "number") {
+        setLatitude(String(res.lat));
+        setLongitude(String(res.lng));
+        setResolvedMapAddress(res.displayName ?? query);
+        setGeocodeSuggestions(
+          res.suggestions && res.suggestions.length > 1 ? res.suggestions : []
+        );
+      }
+    } finally {
+      if (requestId === geocodeRequestIdRef.current) {
+        setIsGeocoding(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    const trimmed = location.trim();
+    if (
+      trimmed.length >= 4 &&
+      Math.abs(parseCoordinateInput(latitude, 37.4419) - 37.4419) < 0.02 &&
+      Math.abs(parseCoordinateInput(longitude, -122.143) - -122.143) < 0.02 &&
+      !trimmed.toLowerCase().includes("palo alto")
+    ) {
+      void performGeocode(trimmed, true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const trimmed = location.trim();
+    if (trimmed.length < 4 || trimmed === lastGeocodedQueryRef.current) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      void performGeocode(trimmed);
+    }, 650);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location]);
 
   // Details
   const [areaM2, setAreaM2] = useState(
@@ -201,19 +314,42 @@ export function PropertyForm({
   );
   const [editingAltText, setEditingAltText] = useState("");
 
+  const numericLat = parseCoordinateInput(latitude, 37.4419);
+  const numericLng = parseCoordinateInput(longitude, -122.143);
+
+  const showError = (msg: string) => {
+    setErrorMessage(msg);
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
   // Upload a single file to Supabase bucket `property-images`
   const uploadSingleFileToSupabase = async (
     file: File,
     replacePath?: string | null
   ): Promise<{ url: string; path?: string }> => {
-    if (file.size > 5 * 1024 * 1024) {
-      throw new Error("Max file size is 5MB per image.");
+    if (file.size > 10 * 1024 * 1024) {
+      throw new Error("Max file size is 10MB per image.");
     }
 
+    const formData = new FormData();
+    formData.set("file", file);
+    if (replacePath) {
+      formData.set("replacePath", replacePath);
+    }
+
+    // Primary path: Server Action using the authenticated server client
+    const res = await uploadPropertyImageAction(formData);
+    if (res.ok && res.url) {
+      return { url: res.url, path: res.path };
+    }
+
+    // Fallback: Browser client
     const ext = (file.name.split(".").pop() || "jpg")
       .toLowerCase()
       .replace(/[^a-z0-9]/g, "");
-    const safeExt = ["jpg", "jpeg", "png", "webp", "avif"].includes(ext)
+    const safeExt = ["jpg", "jpeg", "png", "webp", "avif", "gif"].includes(ext)
       ? ext
       : "jpg";
 
@@ -222,43 +358,32 @@ export function PropertyForm({
         ? replacePath.trim()
         : `listings/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${safeExt}`;
 
-    try {
-      const supabase = createSupabaseBrowserClient();
-      const { error: uploadErr } = await supabase.storage
-        .from(PROPERTY_IMAGES_BUCKET)
-        .upload(targetPath, file, {
-          cacheControl: "3600",
-          upsert: true,
-          contentType:
-            file.type || `image/${safeExt === "jpg" ? "jpeg" : safeExt}`,
-        });
+    const supabase = createSupabaseBrowserClient();
+    const { error: uploadErr } = await supabase.storage
+      .from(PROPERTY_IMAGES_BUCKET)
+      .upload(targetPath, file, {
+        cacheControl: "3600",
+        upsert: true,
+        contentType:
+          file.type || `image/${safeExt === "jpg" ? "jpeg" : safeExt}`,
+      });
 
-      if (!uploadErr) {
-        const {
-          data: { publicUrl },
-        } = supabase.storage
-          .from(PROPERTY_IMAGES_BUCKET)
-          .getPublicUrl(targetPath);
-
-        return {
-          url: replacePath ? `${publicUrl}?v=${Date.now()}` : publicUrl,
-          path: targetPath,
-        };
-      }
-    } catch {
-      // Fallback to Server Action below
+    if (uploadErr) {
+      throw new Error(
+        res.error || uploadErr.message || "Failed to upload image to bucket."
+      );
     }
 
-    const formData = new FormData();
-    formData.set("file", file);
-    if (replacePath) {
-      formData.set("replacePath", replacePath);
-    }
-    const res = await uploadPropertyImageAction(formData);
-    if (!res.ok || !res.url) {
-      throw new Error(res.error || "Failed to upload image to Supabase bucket.");
-    }
-    return { url: res.url, path: res.path };
+    const {
+      data: { publicUrl },
+    } = supabase.storage
+      .from(PROPERTY_IMAGES_BUCKET)
+      .getPublicUrl(targetPath);
+
+    return {
+      url: replacePath ? `${publicUrl}?v=${Date.now()}` : publicUrl,
+      path: targetPath,
+    };
   };
 
   const handleFilesSelected = async (fileList: FileList | null) => {
@@ -278,7 +403,7 @@ export function PropertyForm({
       }
       setImages((prev) => [...prev, ...uploadedItems]);
     } catch (err) {
-      setErrorMessage(
+      showError(
         err instanceof Error ? err.message : "Error uploading images."
       );
     } finally {
@@ -302,7 +427,10 @@ export function PropertyForm({
         ? extractBucketPath(currentImg.url)
         : null;
 
-      const { url } = await uploadSingleFileToSupabase(file, existingBucketPath);
+      const { url } = await uploadSingleFileToSupabase(
+        file,
+        existingBucketPath
+      );
       const updatedAlt =
         editingAltText.trim() ||
         currentImg?.alt ||
@@ -316,9 +444,7 @@ export function PropertyForm({
       );
       setEditingImageIndex(null);
     } catch (err) {
-      setErrorMessage(
-        err instanceof Error ? err.message : "Error updating image."
-      );
+      showError(err instanceof Error ? err.message : "Error updating image.");
     } finally {
       setIsUploading(false);
       if (replaceFileInputRef.current) {
@@ -336,17 +462,7 @@ export function PropertyForm({
     if (target) {
       const bucketPath = extractBucketPath(target.url);
       if (bucketPath) {
-        try {
-          const supabase = createSupabaseBrowserClient();
-          const { error } = await supabase.storage
-            .from(PROPERTY_IMAGES_BUCKET)
-            .remove([bucketPath]);
-          if (error) {
-            await deletePropertyImageFromBucketAction(target.url);
-          }
-        } catch {
-          await deletePropertyImageFromBucketAction(target.url);
-        }
+        await deletePropertyImageFromBucketAction(target.url);
       }
     }
   };
@@ -403,17 +519,34 @@ export function PropertyForm({
 
   const submitProperty = () => {
     setErrorMessage(null);
+    setSuccessMessage(null);
 
     if (!title.trim()) {
-      setErrorMessage(`${labels.fieldTitle} is required.`);
+      showError(`${labels.fieldTitle} is required.`);
       return;
     }
     if (!price || Number(price) <= 0) {
-      setErrorMessage(`${labels.fieldPrice} must be greater than 0.`);
+      showError(`${labels.fieldPrice} must be greater than 0.`);
       return;
     }
     if (!location.trim()) {
-      setErrorMessage(`${labels.fieldLocation} is required.`);
+      showError(`${labels.fieldLocation} is required.`);
+      return;
+    }
+
+    const parsedLat = parseCoordinateInput(latitude, Number.NaN);
+    const parsedLng = parseCoordinateInput(longitude, Number.NaN);
+
+    if (Number.isNaN(parsedLat) || parsedLat < -90 || parsedLat > 90) {
+      showError(
+        `${labels.fieldLatitude}: debe ser un número válido entre -90 y 90.`
+      );
+      return;
+    }
+    if (Number.isNaN(parsedLng) || parsedLng < -180 || parsedLng > 180) {
+      showError(
+        `${labels.fieldLongitude}: debe ser un número válido entre -180 y 180.`
+      );
       return;
     }
 
@@ -439,11 +572,13 @@ export function PropertyForm({
       description: paragraphs.length > 0 ? paragraphs : undefined,
       images: images.length > 0 ? images : DEFAULT_GALLERY_PREVIEW_IMAGES,
       amenities: selectedAmenities,
-      latitude: Number(latitude) || 37.4419,
-      longitude: Number(longitude) || -122.143,
-      agentName: defaultAgent?.name || "Elena Fisher",
-      agentRole: defaultAgent?.role || "Senior Agent",
-      agentAvatar: defaultAgent?.avatar,
+      latitude: parsedLat,
+      longitude: parsedLng,
+      agentName:
+        initialProperty?.agent?.name || defaultAgent?.name || "Elena Fisher",
+      agentRole:
+        initialProperty?.agent?.role || defaultAgent?.role || "Senior Agent",
+      agentAvatar: initialProperty?.agent?.avatar || defaultAgent?.avatar,
     };
 
     startTransition(async () => {
@@ -456,12 +591,15 @@ export function PropertyForm({
         setSuccessMessage(
           mode === "edit" ? labels.updateSuccess : labels.createSuccess
         );
+        if (typeof window !== "undefined") {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
         setTimeout(() => {
           router.push("/admin/properties");
           router.refresh();
         }, 600);
       } else {
-        setErrorMessage(res.error || "Error saving property.");
+        showError(res.error || "Error saving property.");
       }
     });
   };
@@ -530,12 +668,12 @@ export function PropertyForm({
       </header>
 
       {errorMessage && (
-        <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-center justify-between gap-3">
+        <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-center justify-between gap-3 shadow-xs">
           <div className="flex items-center gap-2">
             <span className="material-icons text-red-600 text-lg">
               error_outline
             </span>
-            <span>{errorMessage}</span>
+            <span className="font-medium">{errorMessage}</span>
           </div>
           <button
             type="button"
@@ -548,7 +686,7 @@ export function PropertyForm({
       )}
 
       {successMessage && (
-        <div className="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center gap-2">
+        <div className="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center gap-2 shadow-xs">
           <span className="material-icons text-emerald-600 text-lg">
             check_circle
           </span>
@@ -958,7 +1096,7 @@ export function PropertyForm({
 
         {/* Right Column (xl:col-span-4) */}
         <div className="xl:col-span-4 space-y-8">
-          {/* Location */}
+          {/* Location & Coordinates */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="px-6 py-4 border-b border-hint-green/30 flex items-center gap-3 bg-gradient-to-r from-hint-green/10 to-transparent">
               <div className="w-8 h-8 rounded-full bg-hint-green flex items-center justify-center text-nordic">
@@ -968,75 +1106,194 @@ export function PropertyForm({
                 {labels.locationTitle}
               </h2>
             </div>
-            <div className="p-6 space-y-4">
+            <div className="p-6 space-y-5">
               <div>
                 <label
                   className="block text-sm font-medium text-nordic mb-1.5"
                   htmlFor="location"
                 >
-                  {labels.fieldLocation}
+                  {labels.fieldLocation} <span className="text-red-500">*</span>
                 </label>
-                <input
-                  className="w-full px-4 py-2.5 rounded-md border border-gray-200 bg-white text-nordic placeholder-gray-400 focus:ring-1 focus:ring-mosque focus:border-mosque focus:outline-none transition-all text-sm"
-                  id="location"
-                  placeholder={labels.locationPlaceholder}
-                  type="text"
-                  required
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                />
+                <div className="relative">
+                  <input
+                    className="w-full pl-4 pr-10 py-2.5 rounded-md border border-gray-200 bg-white text-nordic placeholder-gray-400 focus:ring-1 focus:ring-mosque focus:border-mosque focus:outline-none transition-all text-sm"
+                    id="location"
+                    placeholder={labels.locationPlaceholder}
+                    type="text"
+                    required
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    onBlur={() => {
+                      if (location.trim().length >= 4) {
+                        void performGeocode(location, false);
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        void performGeocode(location, true);
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => void performGeocode(location, true)}
+                    title="Buscar dirección en el mapa"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-md text-gray-400 hover:text-mosque hover:bg-hint-green/30 flex items-center justify-center transition-colors cursor-pointer"
+                  >
+                    {isGeocoding ? (
+                      <span className="material-icons text-base animate-spin text-mosque">
+                        progress_activity
+                      </span>
+                    ) : (
+                      <span className="material-icons text-base">search</span>
+                    )}
+                  </button>
+                </div>
+
+                {resolvedMapAddress && (
+                  <p className="mt-1.5 text-[11px] text-mosque flex items-start gap-1 leading-snug">
+                    <span className="material-icons text-[13px] shrink-0 mt-0.5">
+                      check_circle
+                    </span>
+                    <span className="line-clamp-2">{resolvedMapAddress}</span>
+                  </p>
+                )}
+
+                {geocodeSuggestions.length > 1 && (
+                  <div className="mt-2 rounded-lg border border-gray-200 bg-gray-50/80 p-1.5 space-y-1 max-h-36 overflow-y-auto">
+                    {geocodeSuggestions.map((item, idx) => (
+                      <button
+                        key={`${item.lat}-${item.lng}-${idx}`}
+                        type="button"
+                        onClick={() => {
+                          setLatitude(String(item.lat));
+                          setLongitude(String(item.lng));
+                          setResolvedMapAddress(item.displayName);
+                          setGeocodeSuggestions([]);
+                        }}
+                        className="w-full text-left px-2 py-1 rounded text-[11px] text-nordic hover:bg-hint-green/40 hover:text-mosque transition-colors flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <span className="material-icons text-xs text-mosque shrink-0">
+                          place
+                        </span>
+                        <span className="truncate">{item.displayName}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label
-                    className="text-xs text-gray-500 font-medium mb-1 block"
-                    htmlFor="latitude"
-                  >
-                    Latitude
-                  </label>
-                  <input
-                    id="latitude"
-                    type="number"
-                    step="any"
-                    value={latitude}
-                    onChange={(e) => setLatitude(e.target.value)}
-                    className="w-full text-left px-3 py-2 rounded border border-gray-200 bg-gray-50 text-nordic focus:bg-white focus:ring-1 focus:ring-mosque focus:border-mosque focus:outline-none transition-all text-xs"
-                  />
-                </div>
-                <div>
-                  <label
-                    className="text-xs text-gray-500 font-medium mb-1 block"
-                    htmlFor="longitude"
-                  >
-                    Longitude
-                  </label>
-                  <input
-                    id="longitude"
-                    type="number"
-                    step="any"
-                    value={longitude}
-                    onChange={(e) => setLongitude(e.target.value)}
-                    className="w-full text-left px-3 py-2 rounded border border-gray-200 bg-gray-50 text-nordic focus:bg-white focus:ring-1 focus:ring-mosque focus:border-mosque focus:outline-none transition-all text-xs"
-                  />
-                </div>
-              </div>
-
-              <div className="relative h-48 w-full rounded-lg overflow-hidden bg-gray-100 border border-gray-200 group">
-                <Image
-                  alt="Map view of city streets"
-                  className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all duration-500"
-                  src={MAP_PREVIEW_IMAGE}
-                  fill
-                  sizes="400px"
-                />
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <span className="bg-white/90 text-nordic px-3 py-1.5 rounded shadow-sm backdrop-blur-sm text-xs font-bold flex items-center gap-1">
+              {/* Coordinates (Latitude & Longitude) Box */}
+              <div className="p-4 rounded-xl bg-hint-green/15 border border-mosque/15 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wider text-nordic flex items-center gap-1.5">
                     <span className="material-icons text-sm text-mosque">
-                      map
-                    </span>{" "}
-                    {labels.mapPreviewLabel}
+                      my_location
+                    </span>
+                    {labels.coordinatesSectionLabel}
                   </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label
+                      className="text-xs text-nordic font-semibold mb-1 block"
+                      htmlFor="latitude"
+                    >
+                      {labels.fieldLatitude}{" "}
+                      <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      id="latitude"
+                      type="number"
+                      step="any"
+                      min={-90}
+                      max={90}
+                      required
+                      placeholder="e.g. 25.7617"
+                      value={latitude}
+                      onChange={(e) => setLatitude(e.target.value)}
+                      className="w-full text-left px-3 py-2 rounded-md border border-gray-200 bg-white text-nordic font-mono focus:ring-1 focus:ring-mosque focus:border-mosque focus:outline-none transition-all text-sm shadow-2xs"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      className="text-xs text-nordic font-semibold mb-1 block"
+                      htmlFor="longitude"
+                    >
+                      {labels.fieldLongitude}{" "}
+                      <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      id="longitude"
+                      type="number"
+                      step="any"
+                      min={-180}
+                      max={180}
+                      required
+                      placeholder="e.g. -80.1918"
+                      value={longitude}
+                      onChange={(e) => setLongitude(e.target.value)}
+                      className="w-full text-left px-3 py-2 rounded-md border border-gray-200 bg-white text-nordic font-mono focus:ring-1 focus:ring-mosque focus:border-mosque focus:outline-none transition-all text-sm shadow-2xs"
+                    />
+                  </div>
+                </div>
+
+                <p className="text-[11px] text-gray-500 leading-snug">
+                  {labels.coordinatesHint}
+                </p>
+
+                {/* Quick coordinate presets */}
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {COORDINATE_PRESETS.map((preset) => (
+                    <button
+                      key={preset.name}
+                      type="button"
+                      onClick={() => {
+                        setLatitude(String(preset.lat));
+                        setLongitude(String(preset.lng));
+                      }}
+                      className="px-2 py-1 rounded text-[11px] font-medium bg-white border border-gray-200 text-nordic hover:border-mosque hover:text-mosque transition-colors cursor-pointer"
+                    >
+                      {preset.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Interactive Map Preview & Picker */}
+              <div className="relative h-56 w-full rounded-lg overflow-hidden bg-gray-100 border border-gray-200 isolate">
+                <AdminLocationMapPicker
+                  lat={numericLat}
+                  lng={numericLng}
+                  addressLabel={resolvedMapAddress || location}
+                  onSelectCoordinates={(newLat, newLng) => {
+                    setLatitude(String(newLat));
+                    setLongitude(String(newLng));
+                    void reverseGeocodeAction(newLat, newLng).then((rev) => {
+                      if (rev.ok && rev.displayName) {
+                        setResolvedMapAddress(rev.displayName);
+                        if (!location.trim()) {
+                          lastGeocodedQueryRef.current = rev.displayName;
+                          setLocation(rev.displayName);
+                        }
+                      }
+                    });
+                  }}
+                />
+                <div className="absolute bottom-2 left-2 right-2 z-20 pointer-events-none flex items-center justify-between gap-2">
+                  <span className="bg-white/95 text-nordic px-2.5 py-1 rounded shadow-sm backdrop-blur-sm text-[11px] font-mono font-semibold flex items-center gap-1 border border-gray-200/80 shrink-0">
+                    <span className="material-icons text-xs text-mosque">
+                      place
+                    </span>
+                    {numericLat.toFixed(4)}, {numericLng.toFixed(4)}
+                  </span>
+                  {(resolvedMapAddress || location.trim()) && (
+                    <span className="bg-white/95 text-nordic px-2.5 py-1 rounded shadow-sm backdrop-blur-sm text-[11px] font-medium truncate border border-gray-200/80">
+                      {resolvedMapAddress || location}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>

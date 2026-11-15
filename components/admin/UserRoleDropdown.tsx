@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import {
   updateUserRoleAction,
   updateUserStatusAction,
@@ -40,6 +41,7 @@ export function UserRoleDropdown({
   selfSuspendErrorLabel,
   roleLabels,
 }: UserRoleDropdownProps) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -87,6 +89,8 @@ export function UserRoleDropdown({
             ? selfDemoteErrorLabel
             : result.error ?? "Error"
         );
+      } else {
+        router.refresh();
       }
     });
   }
@@ -111,6 +115,8 @@ export function UserRoleDropdown({
             ? selfSuspendErrorLabel
             : result.error ?? "Error"
         );
+      } else {
+        router.refresh();
       }
     });
   }

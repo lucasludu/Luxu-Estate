@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { createUserAction, type CreateUserInput } from "@/app/actions/admin";
 import type { UserRole, UserStatus } from "@/lib/auth";
 
@@ -26,6 +27,7 @@ export function AddUserButton({
   roleLabels: Record<UserRole, string>;
   statusLabels: Record<UserStatus, string>;
 }) {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -60,6 +62,7 @@ export function AddUserButton({
       const res = await createUserAction(payload);
       if (res.ok) {
         setSuccessMessage(labels.success);
+        router.refresh();
         setTimeout(() => {
           setSuccessMessage(null);
           setIsOpen(false);

@@ -46,13 +46,13 @@ export async function PropertyFormScreen({
       ? `/admin/properties/${propertyId}/edit`
       : "/admin/properties/new";
 
-  const [{ locale, dict }, adminUser, property] = await Promise.all([
+  const [{ locale, dict }, adminUser] = await Promise.all([
     getServerI18n(),
     requireAdminUser(targetPath),
-    mode === "edit" && propertyId
-      ? getPropertyById(propertyId)
-      : Promise.resolve(null),
   ]);
+
+  const property =
+    mode === "edit" && propertyId ? await getPropertyById(propertyId) : null;
 
   if (mode === "edit" && !property) {
     notFound();
@@ -85,7 +85,11 @@ export async function PropertyFormScreen({
       : isDe
       ? "Aktualisieren Sie die Angaben der Immobilie. Pflichtfelder sind mit * markiert."
       : "Update the details below for this listing. Fields marked with * are mandatory.",
-    saveDraft: isEs ? "Guardar Borrador" : isDe ? "Entwurf speichern" : "Save Draft",
+    saveDraft: isEs
+      ? "Guardar Borrador"
+      : isDe
+      ? "Entwurf speichern"
+      : "Save Draft",
     saveProperty: isEs
       ? "Guardar Propiedad"
       : isDe
@@ -132,10 +136,10 @@ export async function PropertyFormScreen({
       ? "Klicken oder Bilder hierher ziehen"
       : "Click or drag images here",
     uploadMaxSize: isEs
-      ? "Tamaño máximo 5MB por imagen"
+      ? "Tamaño máximo 10MB por imagen"
       : isDe
-      ? "Maximale Dateigröße 5MB pro Bild"
-      : "Max file size 5MB per image",
+      ? "Maximale Dateigröße 10MB pro Bild"
+      : "Max file size 10MB per image",
     uploadingImages: isEs
       ? "Subiendo imágenes al bucket..."
       : isDe
@@ -163,6 +167,18 @@ export async function PropertyFormScreen({
       : isDe
       ? "Straße, Stadt, PLZ"
       : "Street Address, City, Zip",
+    fieldLatitude: isEs ? "Latitud" : isDe ? "Breitengrad" : "Latitude",
+    fieldLongitude: isEs ? "Longitud" : isDe ? "Längengrad" : "Longitude",
+    coordinatesSectionLabel: isEs
+      ? "Coordenadas Geográficas (GPS)"
+      : isDe
+      ? "Geografische Koordinaten (GPS)"
+      : "Geographic Coordinates (GPS)",
+    coordinatesHint: isEs
+      ? "Ingresa la latitud (-90 a 90) y longitud (-180 a 180) o haz clic en el mapa para ajustar el marcador."
+      : isDe
+      ? "Geben Sie Breitengrad (-90 bis 90) und Längengrad (-180 bis 180) ein oder klicken Sie auf die Karte."
+      : "Enter latitude (-90 to 90) and longitude (-180 to 180) or click on the map to place the pin.",
     mapPreviewLabel: isEs ? "Vista Previa" : isDe ? "Vorschau" : "Preview",
     detailsTitle: isEs ? "Detalles" : isDe ? "Details" : "Details",
     fieldArea: dict.admin.properties.fieldArea,

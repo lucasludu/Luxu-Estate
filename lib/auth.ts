@@ -96,6 +96,7 @@ function extractDisplayName(user: User): string {
 }
 
 export async function getCurrentUser(): Promise<AuthUserProfile | null> {
+  await connection();
   try {
     const cookieStore = await cookies();
     const hasAuthCookie = cookieStore
@@ -106,7 +107,6 @@ export async function getCurrentUser(): Promise<AuthUserProfile | null> {
       return null;
     }
 
-    await connection();
     const supabase = await createSupabaseAuthServerClient();
     const {
       data: { user },

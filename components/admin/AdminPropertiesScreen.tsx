@@ -408,6 +408,21 @@ export async function AdminPropertiesScreen({
                       <span className="font-medium text-nordic-dark/70">
                         {translateCategory(dict, property.category)}
                       </span>
+                      {property.coordinates && (
+                        <>
+                          <span className="w-1 h-1 rounded-full bg-gray-300" />
+                          <span
+                            className="inline-flex items-center gap-0.5 font-mono text-[11px] text-mosque/80"
+                            title="Latitud, Longitud"
+                          >
+                            <span className="material-icons text-[12px]">
+                              my_location
+                            </span>
+                            {property.coordinates.lat.toFixed(4)},{" "}
+                            {property.coordinates.lng.toFixed(4)}
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>

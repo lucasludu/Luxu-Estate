@@ -2,7 +2,6 @@
 
 import { revalidatePath, updateTag } from "next/cache";
 import {
-  getCurrentUser,
   isValidUserRole,
   isValidUserStatus,
   type UserRole,
@@ -44,7 +43,9 @@ function ensureMinimumGalleryImages(
   title: string
 ): PropertyImage[] {
   const valid = (images ?? [])
-    .filter((img) => img && typeof img.url === "string" && img.url.trim().length > 0)
+    .filter(
+      (img) => img && typeof img.url === "string" && img.url.trim().length > 0
+    )
     .map((img) => ({
       url: img.url.trim(),
       alt: img.alt?.trim() || title,
@@ -57,7 +58,8 @@ function ensureMinimumGalleryImages(
   const result = [...valid];
   let fallbackIndex = 0;
   while (result.length < 4) {
-    const candidate = FALLBACK_GALLERY_IMAGES[fallbackIndex % FALLBACK_GALLERY_IMAGES.length];
+    const candidate =
+      FALLBACK_GALLERY_IMAGES[fallbackIndex % FALLBACK_GALLERY_IMAGES.length];
     result.push({
       url: candidate.url,
       alt: `${title} - ${candidate.alt}`,
@@ -65,6 +67,75 @@ function ensureMinimumGalleryImages(
     fallbackIndex += 1;
   }
   return result;
+}
+
+function invalidatePropertiesCache(slug?: string, propertyId?: string) {
+  try {
+    updateTag("properties");
+    updateTag("properties-v4");
+    if (slug) {
+      updateTag(`property-${slug}`);
+    }
+  } catch {
+    // ignore if called outside tag cache context
+  }
+  revalidatePath("/admin/properties");
+  revalidatePath("/admin/properties/new");
+  if (propertyId) {
+    revalidatePath(`/admin/properties/${propertyId}/edit`);
+  }
+  if (slug) {
+    revalidatePath(`/properties/${slug}`);
+  }
+  revalidatePath("/admin");
+  revalidatePath("/");
+}
+
+async function getAuthenticatedAdminClient() {
+  const supabase = await createSupabaseAuthServerClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return { supabase: null, user: null, error: "unauthorized" as const };
+  }
+
+  const [{ data: roleRow }, { data: profileRow }] = await Promise.all([
+    supabase
+      .from("user_roles")
+      .select("role_id")
+      .eq("user_id", user.id)
+      .maybeSingle(),
+    supabase
+      .from("profiles")
+      .select("status, full_name, avatar_url")
+      .eq("id", user.id)
+      .maybeSingle(),
+  ]);
+
+  const role: UserRole = isValidUserRole(roleRow?.role_id)
+    ? roleRow.role_id
+    : "viewer";
+  const status: UserStatus = isValidUserStatus(profileRow?.status)
+    ? profileRow.status
+    : "active";
+
+  if (role !== "admin" || status === "suspended") {
+    return { supabase: null, user: null, error: "unauthorized" as const };
+  }
+
+  return {
+    supabase,
+    user: {
+      id: user.id,
+      email: user.email ?? null,
+      role,
+      status,
+    },
+    error: null,
+  };
 }
 
 export interface UploadPropertyImageResult {
@@ -77,12 +148,8 @@ export interface UploadPropertyImageResult {
 export async function uploadPropertyImageAction(
   formData: FormData
 ): Promise<UploadPropertyImageResult> {
-  const currentUser = await getCurrentUser();
-  if (
-    !currentUser ||
-    currentUser.role !== "admin" ||
-    currentUser.status === "suspended"
-  ) {
+  const { supabase, error: authErr } = await getAuthenticatedAdminClient();
+  if (!supabase || authErr) {
     return { ok: false, error: "unauthorized" };
   }
 
@@ -91,7 +158,7 @@ export async function uploadPropertyImageAction(
     return { ok: false, error: "invalid_file" };
   }
 
-  if (file.size > 5 * 1024 * 1024) {
+  if (file.size > 10 * 1024 * 1024) {
     return { ok: false, error: "file_too_large" };
   }
 
@@ -99,7 +166,7 @@ export async function uploadPropertyImageAction(
   const ext = (file.name.split(".").pop() || "jpg")
     .toLowerCase()
     .replace(/[^a-z0-9]/g, "");
-  const safeExt = ["jpg", "jpeg", "png", "webp", "avif"].includes(ext)
+  const safeExt = ["jpg", "jpeg", "png", "webp", "avif", "gif"].includes(ext)
     ? ext
     : "jpg";
 
@@ -108,7 +175,6 @@ export async function uploadPropertyImageAction(
       ? existingPath.trim()
       : `listings/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${safeExt}`;
 
-  const supabase = await createSupabaseAuthServerClient();
   const arrayBuffer = await file.arrayBuffer();
 
   const { error: uploadError } = await supabase.storage
@@ -142,12 +208,8 @@ export async function uploadPropertyImageAction(
 export async function deletePropertyImageFromBucketAction(
   imageUrl: string
 ): Promise<AdminMutationResult> {
-  const currentUser = await getCurrentUser();
-  if (
-    !currentUser ||
-    currentUser.role !== "admin" ||
-    currentUser.status === "suspended"
-  ) {
+  const { supabase, error: authErr } = await getAuthenticatedAdminClient();
+  if (!supabase || authErr) {
     return { ok: false, error: "unauthorized" };
   }
 
@@ -162,7 +224,6 @@ export async function deletePropertyImageFromBucketAction(
     return { ok: true };
   }
 
-  const supabase = await createSupabaseAuthServerClient();
   const { error } = await supabase.storage
     .from(PROPERTY_IMAGES_BUCKET)
     .remove([decodeURIComponent(rawPath)]);
@@ -198,15 +259,23 @@ export interface CreatePropertyInput {
   agentAvatar?: string;
 }
 
+function normalizeCoordinate(
+  value: number | undefined,
+  min: number,
+  max: number,
+  fallback: number
+): number {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return Math.min(max, Math.max(min, value));
+  }
+  return fallback;
+}
+
 export async function createPropertyAction(
   input: CreatePropertyInput
 ): Promise<AdminMutationResult> {
-  const currentUser = await getCurrentUser();
-  if (
-    !currentUser ||
-    currentUser.role !== "admin" ||
-    currentUser.status === "suspended"
-  ) {
+  const { supabase, error: authErr } = await getAuthenticatedAdminClient();
+  if (!supabase || authErr) {
     return { ok: false, error: "unauthorized" };
   }
 
@@ -214,7 +283,6 @@ export async function createPropertyAction(
     return { ok: false, error: "invalid_input" };
   }
 
-  const supabase = await createSupabaseAuthServerClient();
   const id = crypto.randomUUID();
   const baseSlug =
     input.title
@@ -231,12 +299,7 @@ export async function createPropertyAction(
   const amenitiesToInsert =
     input.amenities && input.amenities.length > 0
       ? input.amenities
-      : [
-          "Swimming Pool",
-          "High-speed Wifi",
-          "Air Conditioning",
-          "Parking",
-        ];
+      : ["Swimming Pool", "High-speed Wifi", "Air Conditioning", "Parking"];
 
   const descriptionParagraphs = (input.description ?? [])
     .map((p) => p.trim())
@@ -270,14 +333,10 @@ export async function createPropertyAction(
     image_alt: imagesToInsert[0]?.alt || cleanTitle,
     description: descriptionToInsert,
     amenities: amenitiesToInsert,
+    latitude: normalizeCoordinate(input.latitude, -90, 90, 37.4419),
+    longitude: normalizeCoordinate(input.longitude, -180, 180, -122.143),
   };
 
-  if (typeof input.latitude === "number" && !Number.isNaN(input.latitude)) {
-    insertPayload.latitude = input.latitude;
-  }
-  if (typeof input.longitude === "number" && !Number.isNaN(input.longitude)) {
-    insertPayload.longitude = input.longitude;
-  }
   if (input.agentName?.trim()) {
     insertPayload.agent_name = input.agentName.trim();
   }
@@ -288,22 +347,27 @@ export async function createPropertyAction(
     insertPayload.agent_avatar = input.agentAvatar.trim();
   }
 
-  const { error } = await supabase.from("properties").insert(insertPayload);
+  const { data: insertedRow, error } = await supabase
+    .from("properties")
+    .insert(insertPayload)
+    .select("id, slug")
+    .maybeSingle();
 
   if (error) {
     return { ok: false, error: error.message };
   }
 
-  try {
-    updateTag("properties");
-  } catch {
-    // ignore if called outside tag cache context
+  if (!insertedRow) {
+    return {
+      ok: false,
+      error: "No se pudo guardar la propiedad (verifica permisos RLS).",
+    };
   }
-  revalidatePath("/admin/properties");
-  revalidatePath("/admin");
-  revalidatePath("/");
 
-  return { ok: true, id, slug };
+  const finalSlug = String(insertedRow.slug || slug);
+  invalidatePropertiesCache(finalSlug, id);
+
+  return { ok: true, id, slug: finalSlug };
 }
 
 export interface UpdatePropertyInput {
@@ -334,12 +398,8 @@ export async function updatePropertyAction(
   propertyId: string,
   input: UpdatePropertyInput
 ): Promise<AdminMutationResult> {
-  const currentUser = await getCurrentUser();
-  if (
-    !currentUser ||
-    currentUser.role !== "admin" ||
-    currentUser.status === "suspended"
-  ) {
+  const { supabase, error: authErr } = await getAuthenticatedAdminClient();
+  if (!supabase || authErr) {
     return { ok: false, error: "unauthorized" };
   }
 
@@ -347,7 +407,6 @@ export async function updatePropertyAction(
     return { ok: false, error: "invalid_input" };
   }
 
-  const supabase = await createSupabaseAuthServerClient();
   const cleanTitle = input.title.trim();
 
   const updateData: Record<string, unknown> = {
@@ -365,7 +424,7 @@ export async function updatePropertyAction(
     featured: Boolean(input.featured),
   };
 
-  if (typeof input.yearBuilt === "number" && !Number.isNaN(input.yearBuilt)) {
+  if (typeof input.yearBuilt === "number" && Number.isFinite(input.yearBuilt)) {
     updateData.year_built = Math.max(1800, Math.floor(input.yearBuilt));
   }
 
@@ -386,11 +445,11 @@ export async function updatePropertyAction(
     }
   }
 
-  if (typeof input.latitude === "number" && !Number.isNaN(input.latitude)) {
-    updateData.latitude = input.latitude;
+  if (typeof input.latitude === "number" && Number.isFinite(input.latitude)) {
+    updateData.latitude = Math.min(90, Math.max(-90, input.latitude));
   }
-  if (typeof input.longitude === "number" && !Number.isNaN(input.longitude)) {
-    updateData.longitude = input.longitude;
+  if (typeof input.longitude === "number" && Number.isFinite(input.longitude)) {
+    updateData.longitude = Math.min(180, Math.max(-180, input.longitude));
   }
   if (input.agentName?.trim()) {
     updateData.agent_name = input.agentName.trim();
@@ -406,30 +465,23 @@ export async function updatePropertyAction(
     .from("properties")
     .update(updateData)
     .eq("id", propertyId)
-    .select("slug")
+    .select("id, slug")
     .maybeSingle();
 
   if (error) {
     return { ok: false, error: error.message };
   }
 
-  const slug = updatedRow?.slug ? String(updatedRow.slug) : undefined;
+  if (!updatedRow) {
+    return {
+      ok: false,
+      error:
+        "No se pudo actualizar la propiedad (verifica tu sesión de administrador o políticas RLS).",
+    };
+  }
 
-  try {
-    updateTag("properties");
-    if (slug) {
-      updateTag(`property-${slug}`);
-    }
-  } catch {
-    // ignore if called outside tag cache context
-  }
-  revalidatePath("/admin/properties");
-  revalidatePath(`/admin/properties/${propertyId}/edit`);
-  if (slug) {
-    revalidatePath(`/properties/${slug}`);
-  }
-  revalidatePath("/admin");
-  revalidatePath("/");
+  const slug = updatedRow.slug ? String(updatedRow.slug) : undefined;
+  invalidatePropertiesCache(slug, propertyId);
 
   return { ok: true, id: propertyId, slug };
 }
@@ -437,12 +489,8 @@ export async function updatePropertyAction(
 export async function deletePropertyAction(
   propertyId: string
 ): Promise<AdminMutationResult> {
-  const currentUser = await getCurrentUser();
-  if (
-    !currentUser ||
-    currentUser.role !== "admin" ||
-    currentUser.status === "suspended"
-  ) {
+  const { supabase, error: authErr } = await getAuthenticatedAdminClient();
+  if (!supabase || authErr) {
     return { ok: false, error: "unauthorized" };
   }
 
@@ -450,25 +498,26 @@ export async function deletePropertyAction(
     return { ok: false, error: "invalid_input" };
   }
 
-  const supabase = await createSupabaseAuthServerClient();
-
-  const { error } = await supabase
+  const { data: deletedRow, error } = await supabase
     .from("properties")
     .delete()
-    .eq("id", propertyId);
+    .eq("id", propertyId)
+    .select("id, slug")
+    .maybeSingle();
 
   if (error) {
     return { ok: false, error: error.message };
   }
 
-  try {
-    updateTag("properties");
-  } catch {
-    // ignore if called outside tag cache context
+  if (!deletedRow) {
+    return {
+      ok: false,
+      error: "No se pudo eliminar la propiedad (verifica permisos RLS).",
+    };
   }
-  revalidatePath("/admin/properties");
-  revalidatePath("/admin");
-  revalidatePath("/");
+
+  const slug = deletedRow.slug ? String(deletedRow.slug) : undefined;
+  invalidatePropertiesCache(slug, propertyId);
 
   return { ok: true };
 }
@@ -477,12 +526,9 @@ export async function updateUserRoleAction(
   targetUserId: string,
   newRole: UserRole
 ): Promise<AdminMutationResult> {
-  const currentUser = await getCurrentUser();
-  if (
-    !currentUser ||
-    currentUser.role !== "admin" ||
-    currentUser.status === "suspended"
-  ) {
+  const { supabase, user: currentUser, error: authErr } =
+    await getAuthenticatedAdminClient();
+  if (!supabase || !currentUser || authErr) {
     return { ok: false, error: "unauthorized" };
   }
 
@@ -494,20 +540,29 @@ export async function updateUserRoleAction(
     return { ok: false, error: "self_demote_forbidden" };
   }
 
-  const supabase = await createSupabaseAuthServerClient();
-
-  const { error } = await supabase.from("user_roles").upsert(
-    {
-      user_id: targetUserId,
-      role_id: newRole,
-      updated_by: currentUser.id,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: "user_id" }
-  );
+  const { data: updatedRow, error } = await supabase
+    .from("user_roles")
+    .upsert(
+      {
+        user_id: targetUserId,
+        role_id: newRole,
+        updated_by: currentUser.id,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "user_id" }
+    )
+    .select("user_id")
+    .maybeSingle();
 
   if (error) {
     return { ok: false, error: error.message };
+  }
+
+  if (!updatedRow) {
+    return {
+      ok: false,
+      error: "No se pudo actualizar el rol (verifica permisos RLS).",
+    };
   }
 
   revalidatePath("/admin/users");
@@ -519,12 +574,9 @@ export async function updateUserStatusAction(
   targetUserId: string,
   newStatus: UserStatus
 ): Promise<AdminMutationResult> {
-  const currentUser = await getCurrentUser();
-  if (
-    !currentUser ||
-    currentUser.role !== "admin" ||
-    currentUser.status === "suspended"
-  ) {
+  const { supabase, user: currentUser, error: authErr } =
+    await getAuthenticatedAdminClient();
+  if (!supabase || !currentUser || authErr) {
     return { ok: false, error: "unauthorized" };
   }
 
@@ -536,18 +588,25 @@ export async function updateUserStatusAction(
     return { ok: false, error: "self_suspend_forbidden" };
   }
 
-  const supabase = await createSupabaseAuthServerClient();
-
-  const { error } = await supabase
+  const { data: updatedProfile, error } = await supabase
     .from("profiles")
     .update({
       status: newStatus,
       updated_at: new Date().toISOString(),
     })
-    .eq("id", targetUserId);
+    .eq("id", targetUserId)
+    .select("id")
+    .maybeSingle();
 
   if (error) {
     return { ok: false, error: error.message };
+  }
+
+  if (!updatedProfile) {
+    return {
+      ok: false,
+      error: "No se pudo actualizar el estado del usuario (verifica permisos RLS).",
+    };
   }
 
   revalidatePath("/admin/users");
@@ -562,15 +621,212 @@ export interface CreateUserInput {
   status?: UserStatus;
 }
 
+export interface GeocodeSuggestion {
+  displayName: string;
+  lat: number;
+  lng: number;
+}
+
+export interface GeocodeResult {
+  ok: boolean;
+  lat?: number;
+  lng?: number;
+  displayName?: string;
+  suggestions?: GeocodeSuggestion[];
+  error?: string;
+}
+
+export async function geocodeAddressAction(
+  rawQuery: string
+): Promise<GeocodeResult> {
+  const query = String(rawQuery ?? "").trim();
+  if (query.length < 3) {
+    return { ok: false, error: "query_too_short" };
+  }
+
+  try {
+    const nominatimUrl = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=5&q=${encodeURIComponent(
+      query
+    )}`;
+    const response = await fetch(nominatimUrl, {
+      headers: {
+        "User-Agent": "LuxeEstateRealEstateApp/1.0 (admin@luxeestate.com)",
+        "Accept-Language": "es,en;q=0.9",
+      },
+      cache: "no-store",
+    });
+
+    if (response.ok) {
+      const data = (await response.json()) as Array<{
+        lat?: string;
+        lon?: string;
+        display_name?: string;
+      }>;
+
+      if (Array.isArray(data) && data.length > 0) {
+        const suggestions: GeocodeSuggestion[] = data
+          .map((item) => ({
+            displayName: String(item.display_name ?? query),
+            lat: Number(Number.parseFloat(String(item.lat)).toFixed(6)),
+            lng: Number(Number.parseFloat(String(item.lon)).toFixed(6)),
+          }))
+          .filter(
+            (item) => Number.isFinite(item.lat) && Number.isFinite(item.lng)
+          );
+
+        if (suggestions.length > 0) {
+          const best = suggestions[0];
+          return {
+            ok: true,
+            lat: best.lat,
+            lng: best.lng,
+            displayName: best.displayName,
+            suggestions,
+          };
+        }
+      }
+    }
+  } catch {
+    // Fallback to Photon below
+  }
+
+  try {
+    const photonUrl = `https://photon.komoot.io/api/?limit=5&q=${encodeURIComponent(
+      query
+    )}`;
+    const response = await fetch(photonUrl, {
+      headers: {
+        "User-Agent": "LuxeEstateRealEstateApp/1.0",
+      },
+      cache: "no-store",
+    });
+
+    if (response.ok) {
+      const data = (await response.json()) as {
+        features?: Array<{
+          geometry?: { coordinates?: [number, number] };
+          properties?: {
+            name?: string;
+            street?: string;
+            housenumber?: string;
+            city?: string;
+            state?: string;
+            country?: string;
+          };
+        }>;
+      };
+
+      const features = data?.features ?? [];
+      const suggestions: GeocodeSuggestion[] = features
+        .map((f) => {
+          const coords = f.geometry?.coordinates;
+          if (!Array.isArray(coords) || coords.length < 2) return null;
+          const lng = Number(Number(coords[0]).toFixed(6));
+          const lat = Number(Number(coords[1]).toFixed(6));
+          const props = f.properties ?? {};
+          const streetPart = [props.street, props.housenumber]
+            .filter(Boolean)
+            .join(" ");
+          const parts = [
+            streetPart || props.name,
+            props.city,
+            props.state,
+            props.country,
+          ].filter(Boolean);
+          return {
+            displayName: parts.join(", ") || query,
+            lat,
+            lng,
+          };
+        })
+        .filter(
+          (item): item is GeocodeSuggestion =>
+            item !== null &&
+            Number.isFinite(item.lat) &&
+            Number.isFinite(item.lng)
+        );
+
+      if (suggestions.length > 0) {
+        const best = suggestions[0];
+        return {
+          ok: true,
+          lat: best.lat,
+          lng: best.lng,
+          displayName: best.displayName,
+          suggestions,
+        };
+      }
+    }
+  } catch {
+    // Ignore
+  }
+
+  return { ok: false, error: "not_found" };
+}
+
+export async function reverseGeocodeAction(
+  lat: number,
+  lng: number
+): Promise<{ ok: boolean; displayName?: string }> {
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+    return { ok: false };
+  }
+
+  try {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(
+      String(lat)
+    )}&lon=${encodeURIComponent(String(lng))}&zoom=18&addressdetails=1`;
+    const response = await fetch(url, {
+      headers: {
+        "User-Agent": "LuxeEstateRealEstateApp/1.0 (admin@luxeestate.com)",
+        "Accept-Language": "es,en;q=0.9",
+      },
+      cache: "no-store",
+    });
+
+    if (response.ok) {
+      const data = (await response.json()) as {
+        display_name?: string;
+        address?: {
+          road?: string;
+          house_number?: string;
+          suburb?: string;
+          city?: string;
+          town?: string;
+          state?: string;
+          country?: string;
+        };
+      };
+
+      if (data?.address) {
+        const a = data.address;
+        const street = [a.road, a.house_number].filter(Boolean).join(" ");
+        const locality = a.city || a.town || a.suburb;
+        const concise = [street, locality, a.state, a.country]
+          .filter(Boolean)
+          .join(", ");
+        if (concise) {
+          return { ok: true, displayName: concise };
+        }
+      }
+
+      if (data?.display_name) {
+        return { ok: true, displayName: data.display_name };
+      }
+    }
+  } catch {
+    // Ignore
+  }
+
+  return { ok: false };
+}
+
 export async function createUserAction(
   input: CreateUserInput
 ): Promise<AdminMutationResult> {
-  const currentUser = await getCurrentUser();
-  if (
-    !currentUser ||
-    currentUser.role !== "admin" ||
-    currentUser.status === "suspended"
-  ) {
+  const { supabase, user: currentUser, error: authErr } =
+    await getAuthenticatedAdminClient();
+  if (!supabase || !currentUser || authErr) {
     return { ok: false, error: "unauthorized" };
   }
 
@@ -582,39 +838,26 @@ export async function createUserAction(
     return { ok: false, error: "invalid_input" };
   }
 
-  const supabase = await createSupabaseAuthServerClient();
-  const userId = crypto.randomUUID();
-  const now = new Date().toISOString();
+  const cleanEmail = input.email.trim().toLowerCase();
+  const cleanName = input.fullName.trim();
+  const cleanStatus: UserStatus =
+    input.status && isValidUserStatus(input.status) ? input.status : "active";
 
-  const { error: profileError } = await supabase.from("profiles").insert({
-    id: userId,
-    email: input.email.trim().toLowerCase(),
-    full_name: input.fullName.trim(),
-    avatar_url: null,
-    provider: "email",
-    status:
-      input.status && isValidUserStatus(input.status) ? input.status : "active",
-    created_at: now,
-    updated_at: now,
-  });
+  const { data: createdId, error: rpcError } = await supabase.rpc(
+    "admin_create_user",
+    {
+      p_email: cleanEmail,
+      p_full_name: cleanName,
+      p_role: input.role,
+      p_status: cleanStatus,
+    }
+  );
 
-  if (profileError) {
-    return { ok: false, error: profileError.message };
-  }
-
-  const { error: roleError } = await supabase.from("user_roles").insert({
-    user_id: userId,
-    role_id: input.role,
-    updated_by: currentUser.id,
-    updated_at: now,
-  });
-
-  if (roleError) {
-    return { ok: false, error: roleError.message };
+  if (rpcError) {
+    return { ok: false, error: rpcError.message };
   }
 
   revalidatePath("/admin/users");
   revalidatePath("/admin");
-  return { ok: true };
+  return { ok: true, id: createdId ? String(createdId) : undefined };
 }
-

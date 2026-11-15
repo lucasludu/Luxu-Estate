@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { deletePropertyAction } from "@/app/actions/admin";
 import type { Property } from "@/data/properties";
 
@@ -42,6 +43,7 @@ export function PropertyRowActions({
   labels: PropertyRowActionsLabels;
   categoryLabels?: Record<string, string>;
 }) {
+  const router = useRouter();
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -52,6 +54,7 @@ export function PropertyRowActions({
       const res = await deletePropertyAction(property.id);
       if (res.ok) {
         setIsDeleteOpen(false);
+        router.refresh();
       } else {
         setErrorMessage(res.error || "Error al eliminar propiedad");
       }
